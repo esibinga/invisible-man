@@ -1,19 +1,19 @@
 {
-  "name": "Invisible-Man",
+  "name": "invisible-man",
   "version": "1.0.0",
   "description": "invisible man",
   "main": "index.js",
-  "repository": "https://github.com/esibinga/Invisible-Man",
+  "repository": "https://github.com/esibinga/invisible-man",
   "author": "Eva",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel Invisible-Man/index.html"
+    "dev": "parcel invisible-man/index.html"
   },
   "devDependencies": {
     "eslint": "7.2.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "^2.21.2",
-    "sass": "^1.26.8",
-    "parcel": "^2.0.0-beta.1"
+    "parcel": "^2.0.0-beta.1",
+    "sass": "^1.26.8"
   }
 }
