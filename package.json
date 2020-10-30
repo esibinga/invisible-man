@@ -7,13 +7,17 @@
   "author": "Eva",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel invisible-man/index.html"
+    "dev": "parcel index.html"
   },
   "devDependencies": {
     "eslint": "7.2.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "^2.21.2",
-    "parcel": "^2.0.0-beta.1",
-    "sass": "^1.26.8"
+    "parcel": "^2.0.0-nightly.424",
+    "sass": "^1.27.0"
+  },
+  "dependencies": {
+    "d3": "^6.2.0",
+    "node-sass": "^4.14.1"
   }
 }
