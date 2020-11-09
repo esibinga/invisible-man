@@ -1,6 +1,19 @@
 body {
   background-color: #7c3b43;
-  color: #bbd0e3; }
+  color: #bbd0e3;
+  font-family: monaco;
+}
+body .h1 {
+  color: #7c3b43;
+}
+body .flexgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 500px;
+}
+body .flexgrid .flex {
+  background-color: #bbd0e3;
+  height: 20%;
+}
 
-.h1 {
-  color: #7c3b43; }
+/*# sourceMappingURL=style.css.map */

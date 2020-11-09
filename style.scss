@@ -1,12 +1,57 @@
 $darkRed: #7c3b43;
 $lightBlue: #bbd0e3;
 $lightGray: #d5d8e1;
+$white: #fffffe;
+
+
 
 body {
     background-color: $darkRed;
     color: $lightBlue;
-}
+    font-family: monaco;
 
-.h1{
-    color: $darkRed;
+    h1{
+        padding: 0 0 1% 0;
+        border-bottom: 1px solid $lightBlue;
+        width: 110%;
+
+    }
+
+    .flexgrid{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        height: 600px;
+        gap: 1%;
+
+        .cell{
+            background-color: $darkRed;
+            border: 1px solid white;
+            height: 100%;
+            display: grid;
+            grid-template-rows: 10% 75% 10%;
+            gap: 2%;
+            margin-left: 1%;
+            margin-right: 1%;
+
+            .concordance{
+                max-width: 90%;
+                background-color: $darkRed;
+                border: 1px solid white;
+                margin: 2% 5% 2% 5%; // make this auto center
+
+                #concordanceSearch{
+                    margin-top: 1%
+                }
+                #concordanceResults{
+
+                }
+
+                #concordanceChart{
+
+                }
+            }
+
+        }
+    }
+
 }
