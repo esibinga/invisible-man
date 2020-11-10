@@ -7,13 +7,15 @@
   "author": "Eva",
   "license": "MIT",
   "scripts": {
-    "dev": "parcel index.html"
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html"
   },
   "devDependencies": {
     "eslint": "7.2.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "^2.21.2",
     "parcel": "^2.0.0-nightly.424",
+    "parcel-plugin-txt": "^1.0.3",
     "sass": "^1.27.0"
   },
   "dependencies": {

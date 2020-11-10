@@ -1,0 +1,28 @@
+$darkRed: #7c3b43;
+$darkDarkRed: #3a2224;
+$lightBlue: #bbd0e3;
+$lightGray: #d5d8e1;
+$white: #fffffe;
+
+body {
+    background-color: $darkDarkRed;
+    color: $white;
+    font-family: monaco;
+    font-weight: 100;
+
+    h1{
+        padding: 0 5% 1% 5%;
+       margin-top: 0;
+        width: 110%;
+    }
+.textWrapper{
+        background-color: $darkDarkRed;
+        width: 90%;
+        margin: auto;
+    p {
+        margin: auto;
+        padding: 0 5% 0 5%;
+        
+    }
+}
+}
