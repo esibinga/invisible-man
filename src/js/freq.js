@@ -1,52 +1,55 @@
 // interactive lexical dispersion chart
 
-//import { text, csv, autoType } from 'd3';
 import * as d3 from "d3";
 import '../style.scss';
 
-export function freq() {
+export default class Freq {
 
-    const IMtxt = require('url:../../data/invisible_man.txt');
-    let IM_map;
+    constructor(dispatch) {
+        this.dispatch = dispatch;
+        this.updateFreq = this.updateFreq.bind(this);
+        this.dispatch.on("statechange", this.updateFreq); // pick up the "statechange" call
+        this.IMtxt = require('url:../../data/invisible_man.txt');
+        this.IM_map;
+        this.loadData();
+    }
 
     // data and manipulations
-    d3.text(IMtxt, d3.autoType).then((data) => {
-        data = data.slice(515, -198);
-        const spaceRE = /\s+/g;
-        const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-        const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ')
-        const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/)
+    loadData() {
 
-        const IMobj = cells.reduce(function (acc, cur, i) {
-            acc[i] = cur;
-            return acc;
-        }, {});
+        d3.text(this.IMtxt, d3.autoType).then((data) => {
 
-        const xah_obj_to_map = (obj => {
-            const mp = new Map;
-            Object.keys(obj).forEach(k => { mp.set(k, obj[k]) });
-            return mp;
-        });
+            const spaceRE = /\s+/g;
+            const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+            const IM_noMeta_noPunct = data.slice(515, -198).replace(punctRE, '').replace(spaceRE, ' ')
+            const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/)
 
-        IM_map = xah_obj_to_map(IMobj)
+            const IMobj = cells.reduce(function (acc, cur, i) {
+                acc[i] = cur;
+                return acc;
+            }, {});
 
-        const wordRollup = d3.rollup((cells), v => v.length, d => d)
+            const xah_obj_to_map = (obj => {
+                const mp = new Map;
+                Object.keys(obj).forEach(k => { mp.set(k, obj[k]) });
+                return mp;
+            });
 
-        //console.log("IM text", data)
-        console.log("IM obj", IMobj[90]);
-        console.log("IM map", IM_map);
-        console.log("IM unique word map", wordRollup)
+            this.IM_map = xah_obj_to_map(IMobj)
 
-        init();
-    });
+            //const wordRollup = d3.rollup((cells), v => v.length, d => d)
+            let newWord;
+            this.draw(newWord);
+        })
+    };
 
-    function init() {
+    draw(newWord) {
 
         const width = 800;
         const height = 50;
         const marginLeft = 10;
-        const marginRight = 0;
-        const marginBottom = 50;
+        const marginRight = 10;
+        const marginBottom = 10;
         const marginTop = 10;
         const smallFont = 12;
         const medFont = 14;
@@ -55,72 +58,131 @@ export function freq() {
         const lightBlue = "#9dc1e0"; //"#bbd0e3";
         const medGray = "#777";
         const darkGray = "#444";
-        const word = "man"; // this will become a state variable
 
-        const keys = [...IM_map.entries()]
-            .filter(({ 1: v }) => v === word)
-            .map(([k]) => k);
-
-        const keysNum = keys.map(function (x) {
-            return parseInt(x, 10);
-        });
-
-        const svg = d3
+        this.svg = d3
             .select("#d3-container-freq")
             .append("svg")
-            .attr("viewBox", [0, 0, width, height * 1.1])
+            .attr("viewBox", [0, 0, width, height * 2])
 
-        const xScale = d3
+        this.xScale = d3
             .scaleLinear()
-            .domain([0, 176665]) //d3.extent(keysNum)) 
+            .domain([0, 176665])
             .range([marginLeft, width - marginRight]);
 
-        const yScale = d3
+        this.yScale = d3
             .scaleLinear()
             .domain([10, 0])
             .range([0, height]);
 
-        const xAxis = d3.axisBottom(xScale);
-        svg
+        // make chapter markings for x-axis
+        const chapterTicks = [...this.IM_map.entries()]
+            .filter(({ 1: v }) => v === "chapter")
+            .map(([k]) => k);
+
+        console.log("chapterticks", chapterTicks)
+
+        this.chapterTicksObj = chapterTicks.map(function (currElement, index) {
+            return {
+                chapter: index,
+                num: parseInt(currElement, 10),
+            }
+        });
+
+        this.chapterTicks = chapterTicks.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        this.xAxis = d3.axisBottom(this.xScale)
+            .tickValues(this.chapterTicksObj.map(a => a.num))
+            .tickSize(-height)
+
+
+        this.svg
+            .attr("class", "freq")
             .append("g")
-            .attr("class", "axis x-axis")
             .attr("transform", `translate(0,${height - marginBottom})`)
-            // .call(xAxis)
+            .call(this.xAxis)
             .append("text")
             .attr("class", "axis-label")
             .attr("x", "45%")
             .attr("dy", "3em")
-            .text(`dispersion of "${word}" in Invisible Man`)
+            .text(`dispersion of "${newWord}" in Invisible Man`)
             .attr("font-size", medFont)
-            .attr("fill", "none");
+            .attr("fill", "#fff")
+            .selectAll(".tick")
+            .attr("fill", "red")
+            .attr("class", "work");
 
-        const yAxis = d3.axisLeft(yScale);
-        svg
-            .append("g")
-            .attr("class", "axis y-axis")
-            .attr("transform", `translate(${marginLeft},${marginTop})`)
-            // .call(yAxis)
-            .append("text")
-            .attr("class", "axis-label")
-            .attr("y", "50%")
-            .attr("dx", "-3em")
-            .attr("writing-mode", "vertical-rl")
-            .text(" ")
-            .attr("font-size", medFont)
-            .attr("fill", medGray)
+        this.yAxis = d3.axisLeft(this.yScale);
 
-        // create circle for each key (word instance)
+        // this.svg
+        //     .append("g")
+        //     .attr("class", "axis y-axis")
+        //     .attr("transform", `translate(${marginLeft},${marginTop})`)
+        //     // .call(yAxis)
+        //     // .append("text")
+        //     .attr("class", "axis-label")
+        //     .attr("y", "50%")
+        //     .attr("dx", "-3em")
+        //     .attr("writing-mode", "vertical-rl")
+        //     .text(" ")
+        //     .attr("font-size", medFont)
+        //     .attr("fill", medGray)
+
+    }
+
+    updateFreq(newWord) {
+        // this.IM_Map is undefined the first time this runs, so [...this.IM_map.entries()] throws an error until a click event fires
+        const keys = [...this.IM_map.entries()]
+            .filter(({ 1: v }) => v === newWord)
+            .map(([k]) => k);
+
+        this.keysNum = keys.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        console.log("keysNum", this.keysNum)
+        console.log("IM_Map", this.IM_map)
+        console.log("newWOrd", newWord)
+
         const circle =
-            svg.selectAll("circle")
-                .data(keysNum)
+            this.svg.selectAll("circle")
+                .data(this.keysNum)
                 .join("circle")
-                .attr("cy", yScale(5))
-                .attr("cx", (d) => xScale(d))
-                .attr("r", 1)
-                .attr("fill", lightBlue)
+                .attr("class", "circle")
+                .attr("cy", this.yScale(5))
+                .attr("cx", (d) => this.xScale(d))
+                .attr("r", 2)
+                .attr("fill", "#9dc1e0")
                 .attr("opacity", 1)
-                .attr("stroke", lightBlue)
+                .attr("stroke", "#9dc1e0")
+                .on("mouseenter", function (d) {
+                    console.log("freq d", d)
+                    d3.select(this)
+                        .attr("fill", "#fff")
+                        .attr("r", 2)
+                })
+                .on("mouseout", function (d) {
+                    d3.select(this)
+                        .attr("fill", "#9dc1e0")
+                        .attr("r", 1)
+                })
 
+        const axisLabel =
+            this.svg.select("axis-label")
+                //  .append("g")
+                //  .attr("class", "axis x-axis")
+                // .attr("transform", `translate(0,${height - marginBottom})`)
+                .call(this.xAxis)
+                .append("text")
+                // .attr("class", "axis-label")
+                .attr("x", "45%")
+                .attr("dy", "3em")
+                .text(`dispersion of "${newWord}" in Invisible Man`)
+                //.attr("font-size", medFont)
+                .attr("fill", "#fff");
+
+        //update x axis title with newWord
 
     }
 }
