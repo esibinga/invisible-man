@@ -1,58 +1,60 @@
-// this will have the full text (clickable)
-
 import * as d3 from "d3";
 import '../style.scss';
 
-export function text() {
+// CONSTANTS AND GLOBALS
+const widthW = window.innerWidth;
+const heightW = window.innerHeight;
+const lightBlue = "#bbd0e3";
+const IMtxt = require('url:../../data/invisible_man.txt');
+let IMobj;
+let IM_map;
+const spaceRE = /\s+/g;
+const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
 
-    // CONSTANTS AND GLOBALS
-
-    const widthW = window.innerWidth * 0.8;
-    const heightW = window.innerHeight * 0.9;
-    const marginLeft = 0;
-    const marginRight = 0;
-    const marginBottom = 50;
-    const marginTop = 10;
-    const lightBlue = "#9dc1e0"; //"#bbd0e3";
-    const IMtxt = require('url:../../data/invisible_man.txt');
-    let IMobj;
-    let IM_map;
+export default class Text {
+    constructor(dispatch) {
+        this.loadData();
+        this.dispatch = dispatch;
+        //this.position = IM_map.get(newWord)
+    }
 
     // DATA AND MANIPULATIONS
-    d3.text(IMtxt, d3.autoType).then((data) => {
-        data = data.slice(515, -198);
-        const spaceRE = /\s+/g;
-        const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-        const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
-        const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/);
+    loadData() {
 
-        IMobj = cells.reduce(function (acc, cur, i) {
-            acc[i] = cur;
-            return acc;
-        }, {});
+        d3.text(IMtxt, d3.autoType).then((data) => {
+            data = data.slice(515, -198);
+            //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
+            const IM_noMeta_noPunct = data.replace(spaceRE, ' ');
+            const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/);
 
-        const xah_obj_to_map = (obj => {
-            const mp = new Map;
-            Object.keys(obj).forEach(k => { mp.set(k, obj[k]) });
-            return mp;
-        });
+            IMobj = cells.reduce(function (acc, cur, i) {
+                acc[i] = cur;
+                return acc;
+            }, {});
 
-        IM_map = xah_obj_to_map(IMobj)
+            const xah_obj_to_map = (obj => {
+                const mp = new Map;
+                Object.keys(obj).forEach(k => { mp.set(k, obj[k]) });
+                return mp;
+            });
 
-        const wordRollup = d3.rollup((cells), v => v.length, d => d)
-        //console.log("IM map get", d => IM_map.get(d))
-        init();
+            IM_map = xah_obj_to_map(IMobj)
+            const wordRollup = d3.rollup((cells), v => v.length, d => d)
 
-    });
+            this.draw();
+
+            // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
+            this.dispatch.call("statechange", this, IM_map.get("80"));
+        })
+    };
 
     // TEXT ACROSS SCREEN
-    function init() {
-
+    draw() {
         const svg = d3
             .select("#d3-container")
             .append("svg")
             .attr('width', widthW)
-            .attr('height', heightW * .6);
+            .attr('height', heightW);
 
         function gridData() {
             var data = new Array();
@@ -60,16 +62,16 @@ export function text() {
             var xpos = 1; //starting xpos and ypos at 1 so the stroke will show when we make the grid below
             var ypos = 1;
             var width = widthW / 20;
-            var height = 15;
+            var height = 20;
             var click = 0;
             var wordlength = 1;
 
             // iterate for rows	
-            for (var row = 0; row < 100; row++) {
+            for (var row = 0; row < 500; row++) {
                 data.push(new Array());
 
                 // iterate for cells/columns inside rows
-                for (var column = 0; column < 20; column++) {
+                for (var column = 0; column < 25; column++) {
                     data[row].push({
                         num: num,
                         word: IMobj[num],
@@ -94,9 +96,7 @@ export function text() {
         }
 
         var gridData = gridData();
-        // I like to log the data to the console for quick debugging
-        console.log(gridData);
-        //console.log("num", d3.extent(gridData));
+        //  console.log(gridData);
 
         var grid = d3.select("#grid")
             .append("svg")
@@ -119,6 +119,7 @@ export function text() {
             .style("fill", "#3a2224")
             .style("stroke", "#fff0")
 
+        // below is the real draw() portion:
         var text = row.selectAll(".label")
             .data(function (d) { return d; })
             .join("svg:text")
@@ -128,15 +129,28 @@ export function text() {
             .attr("dy", ".5em")
             .attr("font-size", 10)
             .style("fill", "fff")
+            .attr("opacity", .6)
+            .attr("class", function (d) { return d.word })
             .text(function (d) { return d.word })
-            .on('mouseenter', function (d) {
-                d3.select(this)
-                    .style("fill", lightBlue)
+            .on('mouseenter', (event, d) => { //d3 v6?
+                //console.log("d", d)
+                // d3.select(this)
+                //     .style("fill", lightBlue)
+                //     .attr("opacity", 1)
+                //     .attr("font-size", 12)
+                //     .attr("text-anchor", "right")
+            })
+            .on('click', (event, d) => { //d3 v6?
+                console.log("d", d)
+                this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).replace(punctRE, '').replace(spaceRE, ' '));
             })
             .on('mouseout', function (d) {
                 d3.select(this)
                     .style("fill", "fff")
+                    .attr("opacity", .6)
+                    .attr("font-size", 10)
+                    .attr("text-anchor", "left")
+                    .transition(500)
             });
-
     }
 }
