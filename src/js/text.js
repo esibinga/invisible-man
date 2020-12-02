@@ -15,7 +15,6 @@ export default class Text {
     constructor(dispatch) {
         this.loadData();
         this.dispatch = dispatch;
-        //this.position = IM_map.get(newWord)
     }
 
     // DATA AND MANIPULATIONS
@@ -40,11 +39,11 @@ export default class Text {
 
             IM_map = xah_obj_to_map(IMobj)
             const wordRollup = d3.rollup((cells), v => v.length, d => d)
+            //initial value of newWord is "invisible" BUT this sometimes breaks it... and sometimes works?
+            // this.dispatch.call("statechange", this, IM_map.get("80"));
+            // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
 
             this.draw();
-
-            // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
-            this.dispatch.call("statechange", this, IM_map.get("80"));
         })
     };
 

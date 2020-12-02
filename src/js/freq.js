@@ -9,9 +9,10 @@ export default class Freq {
         this.dispatch = dispatch;
         this.updateFreq = this.updateFreq.bind(this);
         this.dispatch.on("statechange.freq", this.updateFreq); // pick up the "statechange" call
-        //    this.dispatch.on("wordNum", (d) => console.log("wordNUM", d));
+        this.dispatch.on("containerChange", this.updateFreq);
         this.IMtxt = require('url:../../data/invisible_man.txt');
         this.IM_map;
+        this.IM_readable;
         this.loadData();
         //can separate updateFreq into smaller functions
         // or - give Freq an internal state property that updates every time 
@@ -28,7 +29,14 @@ export default class Freq {
             const IM_noMeta_noPunct = data.slice(515, -198).replace(punctRE, '').replace(spaceRE, ' ')
             const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/)
 
-            const IMobj = cells.reduce(function (acc, cur, i) {
+            this.IMobj = cells.reduce(function (acc, cur, i) {
+                acc[i] = cur;
+                return acc;
+            }, {});
+
+            this.IM_readable = data.slice(515, -198).split(/\s+/);
+
+            this.IM_readable = this.IM_readable.reduce(function (acc, cur, i) {
                 acc[i] = cur;
                 return acc;
             }, {});
@@ -39,7 +47,7 @@ export default class Freq {
                 return mp;
             });
 
-            this.IM_map = xah_obj_to_map(IMobj)
+            this.IM_map = xah_obj_to_map(this.IMobj)
 
             //const wordRollup = d3.rollup((cells), v => v.length, d => d)
             let newWord;
@@ -110,9 +118,9 @@ export default class Freq {
             .text(`dispersion of "${newWord}" in Invisible Man`)
             .attr("font-size", medFont)
             .attr("fill", "#fff")
-            .selectAll(".tick")
-            .attr("fill", "red")
-            .attr("class", "work");
+        // .selectAll(".tick")
+        // .attr("fill", "red")
+        // .attr("class", "work");
 
         this.yAxis = d3.axisLeft(this.yScale);
         // this.svg
@@ -133,9 +141,11 @@ export default class Freq {
 
     updateFreq(newWord) {
         // this.IM_Map is undefined the first time this runs, so [...this.IM_map.entries()] throws an error until a click event fires
+
         const keys = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === newWord)
             .map(([k]) => k);
+        console.log("keys", keys)
 
         this.keysNum = keys.map(function (x) {
             return parseInt(x, 10);
@@ -160,12 +170,13 @@ export default class Freq {
                     d3.select(this)
                         .attr("fill", "#fff")
                         .attr("r", 3)
-                    //wordNum = d.srcElement.__data__.toString()
                 })
                 .on('click', (event, d) => { //d3 v6?
-                    this.contextNum = d //.toString()
+                    this.contextNum = d
+                    // dispatch the word number to context
                     this.dispatch.call("wordNum", this, d);
-                    // console.log("context word NUm", (this.IM_map.get((this.contextNum - 1).toString()) + " " + this.IM_map.get(this.contextNum.toString()) + " " + this.IM_map.get((this.contextNum + 1).toString())))
+                    // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js
+                    this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
                 })
                 .on("mouseout", function (d) {
                     d3.select(this)
@@ -178,13 +189,13 @@ export default class Freq {
             //  .attr("class", "axis x-axis")
             // .attr("transform", `translate(0,${height - marginBottom})`)
             .call(this.xAxis)
-            .append("text")
+            //.append("text")
             // .attr("class", "axis-label")
             .attr("x", "45%")
             .attr("dy", "3em")
-            .text(newWord) //`dispersion of "${newWord}" in Invisible Man`)
-            //.attr("font-size", medFont)
-            .attr("fill", "#fff");
+            .text(newWord);
+        //.attr("font-size", medFont)
+        //.attr("fill", "#fff");
 
         //update x axis title with newWord
 
