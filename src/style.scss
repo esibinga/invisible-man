@@ -1,6 +1,6 @@
 $darkRed: #7c3b43;
 $darkDarkRed: #3a2224;
-$lightBlue: #bbd0e3;
+$lightBlue: #a2cff7;
 $lightGray: #d5d8e1;
 $white: #fffffe;
 
@@ -22,8 +22,8 @@ body {
         margin: auto;
         //overflow-y: scroll;
 
-        svg{
-          //  overflow-y: scroll;
+        #grid{
+            overflow: auto;
         }
 
     p {
@@ -34,6 +34,13 @@ body {
     .freq {
         color: rgba(255, 255, 255, 0.5);
         border: 1px solid white;
+        margin-top: 5%;
+    }
+
+    .topic {
+        color: rgba(255, 255, 255, 0.5);
+        border: 1px solid white;
+        margin-top: 5%;
     }
 }
 }

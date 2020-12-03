@@ -2,9 +2,9 @@ import * as d3 from "d3";
 import '../style.scss';
 
 // CONSTANTS AND GLOBALS
-const widthW = window.innerWidth;
-const heightW = window.innerHeight;
-const lightBlue = "#bbd0e3";
+const widthW = window.innerWidth * .9;
+const heightW = window.innerHeight * .5;
+const lightBlue = '#a2cff7';
 const IMtxt = require('url:../../data/invisible_man.txt');
 let IMobj;
 let IM_map;
@@ -100,7 +100,7 @@ export default class Text {
         var grid = d3.select("#grid")
             .append("svg")
             .attr("width", widthW)
-            .attr("height", "510px");
+            .attr("height", heightW);
 
         var row = grid.selectAll(".row")
             .data(gridData)
@@ -122,22 +122,22 @@ export default class Text {
         var text = row.selectAll(".label")
             .data(function (d) { return d; })
             .join("svg:text")
+            .attr("class", "textWords")
             .attr("x", function (d) { return d.x + d.width / 2 })
             .attr("y", function (d) { return d.y + d.height / 2 })
-            .attr("text-anchor", "left")
+            //.attr("text-anchor", "left")
             .attr("dy", ".5em")
             .attr("font-size", 10)
             .style("fill", "fff")
-            .attr("opacity", .6)
+            .attr("opacity", .9)
             .attr("class", function (d) { return d.word })
             .text(function (d) { return d.word })
-            .on('mouseenter', (event, d) => { //d3 v6?
-                //console.log("d", d)
-                // d3.select(this)
-                //     .style("fill", lightBlue)
-                //     .attr("opacity", 1)
-                //     .attr("font-size", 12)
-                //     .attr("text-anchor", "right")
+            .on('mouseenter', function (d) {
+                d3.select(this)
+                    .style("fill", lightBlue)
+                    .attr("opacity", 1)
+                    .attr("font-size", 12)
+                    .attr("text-anchor", "right")
             })
             .on('click', (event, d) => { //d3 v6?
                 console.log("d", d)
@@ -146,7 +146,7 @@ export default class Text {
             .on('mouseout', function (d) {
                 d3.select(this)
                     .style("fill", "fff")
-                    .attr("opacity", .6)
+                    .attr("opacity", .9)
                     .attr("font-size", 10)
                     .attr("text-anchor", "left")
                     .transition(500)

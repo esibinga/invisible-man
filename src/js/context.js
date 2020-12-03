@@ -8,7 +8,6 @@ import '../style.scss';
 //
 export default class Context {
     constructor(dispatch) {
-        // this.loadData();
         this.dispatch = dispatch;
         this.dispatch.on("wordNum.context", this.showContext);
     }
@@ -29,20 +28,10 @@ export default class Context {
             .attr("viewBox", [0, 0, width, height * 2])
             .text(context);
 
-        //this should only happen on a click on the  text
-        // a click on freq.js should override the containerChange call?
         this.svg = d3
             .select(".freq")
         this.dispatch.call("containerChange", this, this.svg);
-        //when showContext runs, it should pass this.svg back to updateFreq
     }
 
 }
-
-// newWOrd continues to update in the console, but after wordnum is established (click event on context), updateFreq does not actually create a new graph
-
-// updateFreq didn't work but it redrew circles in context not in freq
-// so, showContext now passes the correct container selection back to updateFreq
-
-//TODO: if newWord changes, THEN the circles should be re-drawn / changed ; ELSE keep them the same
 

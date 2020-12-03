@@ -57,11 +57,11 @@ export default class Freq {
 
     draw(newWord) {
 
-        const width = 800;
-        const height = 50;
+        const width = window.innerWidth * .9;
+        const height = 80;
         const marginLeft = 10;
         const marginRight = 10;
-        const marginBottom = 10;
+        const marginBottom = 0;
         const marginTop = 10;
         const smallFont = 12;
         const medFont = 14;
@@ -74,7 +74,7 @@ export default class Freq {
         this.svg = d3
             .select("#d3-container-freq")
             .append("svg")
-            .attr("viewBox", [0, 0, width, height * 2])
+            .attr("viewBox", [0, 0, width, height])
 
         this.xScale = d3
             .scaleLinear()
@@ -105,19 +105,20 @@ export default class Freq {
         this.xAxis = d3.axisBottom(this.xScale)
             .tickValues(this.chapterTicksObj.map(a => a.num))
             .tickSize(-height)
+            .tickFormat("");
 
         this.svg
             .attr("class", "freq")
             .append("g")
-            .attr("transform", `translate(0,${height - marginBottom})`)
+            .attr("transform", `translate(0, ${height - marginBottom})`)
             .call(this.xAxis)
             .append("text")
             .attr("class", "axis-label")
             .attr("x", "45%")
             .attr("dy", "3em")
-            .text(`dispersion of "${newWord}" in Invisible Man`)
-            .attr("font-size", medFont)
-            .attr("fill", "#fff")
+            .text(`something`)
+        // .attr("font-size", medFont)
+        //.attr("fill", "#fff")
         // .selectAll(".tick")
         // .attr("fill", "red")
         // .attr("class", "work");

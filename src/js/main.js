@@ -9,7 +9,6 @@ export default class App {
         this.newWord = newWord
         this.wordNum = wordNum
         this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange");
-        //adding wordNum here didn't work because this is bound to updateFreq, so there can only be one this?
     }
 
     init() {
