@@ -21,8 +21,13 @@ export default class Text {
     loadData() {
 
         d3.text(IMtxt, d3.autoType).then((data) => {
+            // includes quotations
             data = data.slice(515, -198);
+            // starts with prologue
+            //data = data.slice(940, -198);
             //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
+            // this is called noPunct but it actually does include it
+            // [ ] TO DO: fix that ^^
             const IM_noMeta_noPunct = data.replace(spaceRE, ' ');
             const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/);
 
@@ -56,21 +61,46 @@ export default class Text {
             .attr('height', heightW);
 
         function gridData() {
-            var data = new Array();
-            var num = 0;
-            var xpos = 1; //starting xpos and ypos at 1 so the stroke will show when we make the grid below
-            var ypos = 1;
-            var width = widthW / 20;
-            var height = 20;
-            var click = 0;
-            var wordlength = 1;
-
-            // iterate for rows	
-            for (var row = 0; row < 500; row++) {
+            /*            var data = new Array();
+                       var num = 0;
+                       var xpos = 1; //starting xpos and ypos at 1 so the stroke will show when we make the grid below
+                       var ypos = 1;
+                       var width = widthW / 20;
+                       var height = 25;
+                       var click = 0;
+                       var wordlength = 1;
+                       // iterate for rows	
+                       for (var row = 0; row < 7; row++) {
+                           data.push(new Array());
+           
+                           // iterate for cells/columns inside rows
+                           for (var column = 0; column < 11 && xpos < widthW * .6; column++) {
+                               data[row].push({
+                                   num: num,
+                                   word: IMobj[num],
+                                   wordlength: (IMobj[num]).length,
+                                   x: xpos,
+                                   y: ypos,
+                                   width: width,
+                                   height: height,
+                                   click: click
+                               })
+                               // increment the x position by the word length + a set spacing amount
+                               xpos += 6 * (IMobj[num]).length + 9;
+                               // increment the count of each square by 1
+                               num += 1;
+                           }
+                           // reset the x position after a row is complete
+                           xpos = 1;
+                           // increment the y position for the next row. Move it down 25 (height variable)
+                           ypos += height;
+                       }
+           */
+            for (var row = 0; row < 100; row++) {
                 data.push(new Array());
 
                 // iterate for cells/columns inside rows
-                for (var column = 0; column < 25; column++) {
+                for (var column = 0; xpos < widthW * .9; column++) {
                     data[row].push({
                         num: num,
                         word: IMobj[num],
@@ -82,15 +112,16 @@ export default class Text {
                         click: click
                     })
                     // increment the x position by the word length + a set spacing amount
-                    xpos += 6 * (IMobj[num]).length + 8;
+                    xpos += 6 * (IMobj[num]).length + 9;
                     // increment the count of each square by 1
                     num += 1;
                 }
                 // reset the x position after a row is complete
                 xpos = 1;
-                // increment the y position for the next row. Move it down 50 (height variable)
+                // increment the y position for the next row. Move it down 25 (height variable)
                 ypos += height;
             }
+
             return data;
         }
 
@@ -115,8 +146,8 @@ export default class Text {
             .attr("y", function (d) { return d.y; })
             .attr("width", function (d) { return d.width; })
             .attr("height", function (d) { return d.height; })
+            .style("stroke", "#3a2224")//"#fff0")
             .style("fill", "#3a2224")
-            .style("stroke", "#fff0")
 
         // below is the real draw() portion:
         var text = row.selectAll(".label")
@@ -127,7 +158,7 @@ export default class Text {
             .attr("y", function (d) { return d.y + d.height / 2 })
             //.attr("text-anchor", "left")
             .attr("dy", ".5em")
-            .attr("font-size", 10)
+            .attr("font-size", 11)
             .style("fill", "fff")
             .attr("opacity", .9)
             .attr("class", function (d) { return d.word })
@@ -141,13 +172,14 @@ export default class Text {
             })
             .on('click', (event, d) => { //d3 v6?
                 console.log("d", d)
+                console.log("this text", this)
                 this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).replace(punctRE, '').replace(spaceRE, ' '));
             })
             .on('mouseout', function (d) {
                 d3.select(this)
                     .style("fill", "fff")
                     .attr("opacity", .9)
-                    .attr("font-size", 10)
+                    .attr("font-size", 11)
                     .attr("text-anchor", "left")
                     .transition(500)
             });

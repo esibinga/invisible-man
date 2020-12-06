@@ -8,7 +8,7 @@ export default class App {
     constructor(newWord, wordNum) {
         this.newWord = newWord
         this.wordNum = wordNum
-        this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange");
+        this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray");
     }
 
     init() {

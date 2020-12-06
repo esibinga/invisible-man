@@ -1,4 +1,5 @@
-// interactive lexical dispersion chart
+// displays lexical dispersion chart
+// displays the selected word in the header
 
 import * as d3 from "d3";
 import '../style.scss';
@@ -10,6 +11,7 @@ export default class Freq {
         this.updateFreq = this.updateFreq.bind(this);
         this.dispatch.on("statechange.freq", this.updateFreq); // pick up the "statechange" call
         this.dispatch.on("containerChange", this.updateFreq);
+        this.dispatch.on("topicArray", this.updateFreqMulti);//this.updateFreq);
         this.IMtxt = require('url:../../data/invisible_man.txt');
         this.IM_map;
         this.IM_readable;
@@ -117,26 +119,8 @@ export default class Freq {
             .attr("x", "45%")
             .attr("dy", "3em")
             .text(`something`)
-        // .attr("font-size", medFont)
-        //.attr("fill", "#fff")
-        // .selectAll(".tick")
-        // .attr("fill", "red")
-        // .attr("class", "work");
 
         this.yAxis = d3.axisLeft(this.yScale);
-        // this.svg
-        //     .append("g")
-        //     .attr("class", "axis y-axis")
-        //     .attr("transform", `translate(${marginLeft},${marginTop})`)
-        //     // .call(yAxis)
-        //     // .append("text")
-        //     .attr("class", "axis-label")
-        //     .attr("y", "50%")
-        //     .attr("dx", "-3em")
-        //     .attr("writing-mode", "vertical-rl")
-        //     .text(" ")
-        //     .attr("font-size", medFont)
-        //     .attr("fill", medGray)
 
     }
 
@@ -159,6 +143,7 @@ export default class Freq {
         const circle =
             this.svg.selectAll("circle")
                 .data(this.keysNum)
+                //  console.log("this.keysNum", this.keysNum)
                 .join("circle")
                 .attr("class", "circle")
                 .attr("cy", this.yScale(5))
@@ -174,9 +159,10 @@ export default class Freq {
                 })
                 .on('click', (event, d) => { //d3 v6?
                     this.contextNum = d
-                    // dispatch the word number to context
+                    console.log("this in freq", this)
+                    // dispatch the word number to context:
                     this.dispatch.call("wordNum", this, d);
-                    // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js
+                    // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
                     this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
                 })
                 .on("mouseout", function (d) {
@@ -185,20 +171,120 @@ export default class Freq {
                         .attr("r", 2)
                 })
 
-        this.svg.select("axis-label")
-            //  .append("g")
-            //  .attr("class", "axis x-axis")
-            // .attr("transform", `translate(0,${height - marginBottom})`)
+        // this.svg.select("axis-label")
+        //     .call(this.xAxis)
+        //     .attr("x", "45%")
+        //     .attr("dy", "3em")
+        //     .text(newWord);
+
+        // [ ] TODO: update x axis title with newWord
+        // [ ] TODO: 
+        this.showNewWord(newWord);
+    }
+
+    updateFreqMulti(multiKeysNum) {
+        const width = window.innerWidth * .9;
+        const height = 80;
+        const marginLeft = 10;
+        const marginRight = 10;
+        const marginBottom = 0;
+        const marginTop = 10;
+        const smallFont = 12;
+        const medFont = 14;
+        const bigFont = 20;
+        const lightGray = "#999";
+        const lightBlue = "#9dc1e0"; //"#bbd0e3";
+        const medGray = "#777";
+        const darkGray = "#444";
+
+        this.svg = d3
+            .select("#d3-container-freq2")
+            .append("svg")
+            .attr("viewBox", [0, 0, width, height])
+
+        this.xScale = d3
+            .scaleLinear()
+            .domain([0, 176665])
+            .range([marginLeft, width - marginRight]);
+
+        this.yScale = d3
+            .scaleLinear()
+            .domain([10, 0])
+            .range([0, height]);
+
+        // make chapter markings for x-axis
+        const chapterTicks = [...this.IM_map.entries()]
+            .filter(({ 1: v }) => v === "chapter")
+            .map(([k]) => k);
+
+        this.chapterTicksObj = chapterTicks.map(function (currElement, index) {
+            return {
+                chapter: index,
+                num: parseInt(currElement, 10),
+            }
+        });
+
+        this.chapterTicks = chapterTicks.map(function (x) {
+            return parseInt(x, 10);
+        });
+
+        this.xAxis = d3.axisBottom(this.xScale)
+            .tickValues(this.chapterTicksObj.map(a => a.num))
+            .tickSize(-height)
+            .tickFormat("");
+
+        this.svg
+            .attr("class", "freq")
+            .append("g")
+            .attr("transform", `translate(0, ${height - marginBottom})`)
             .call(this.xAxis)
-            //.append("text")
-            // .attr("class", "axis-label")
+            .append("text")
+            .attr("class", "axis-label")
             .attr("x", "45%")
             .attr("dy", "3em")
-            .text(newWord);
-        //.attr("font-size", medFont)
-        //.attr("fill", "#fff");
+            .text(`something`)
 
-        //update x axis title with newWord
+        this.yAxis = d3.axisLeft(this.yScale);
 
+        // [ ] TODO: multiKeysNum should have a number associated with each word value (not each token) to be the input for yScale
+
+        console.log("multi freqs", multiKeysNum)
+        const circle =
+            this.svg.selectAll("circle")
+                .data(multiKeysNum)
+                .join("circle")
+                .attr("class", "circle")
+                .attr("cy", this.yScale(5))
+                .attr("cx", (d) => this.xScale(d))
+                .attr("r", 2)
+                .attr("fill", "#9dc1e0")
+                .attr("opacity", 1)
+                .attr("stroke", "#9dc1e0")
+                .on("mouseenter", function (d) {
+                    d3.select(this)
+                        .attr("fill", "#fff")
+                        .attr("r", 3)
+                })
+                .on('click', (event, d) => { //d3 v6?
+                    this.contextNum = d
+                    console.log("this in freq", this)
+                    // dispatch the word number to context:
+                    this.dispatch.call("wordNum", this, d);
+                    // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
+                    this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
+                })
+                .on("mouseout", function (d) {
+                    d3.select(this)
+                        .attr("fill", "#9dc1e0")
+                        .attr("r", 2)
+                })
     }
+
+    showNewWord(newWord) {
+        d3.select("#newWord")
+            .attr("viewBox", [0, 0, 100, 50])
+            .text(`the selected word is: ${newWord}`)
+            .attr("color", '#111')
+    }
+
 }
