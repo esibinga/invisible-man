@@ -85,7 +85,7 @@ export default class Topics {
         //console.log("this.IMMAP", this.IM_map)
 
         const width = window.innerWidth * .9;
-        const height = 80;
+        const height = 100;
         const marginLeft = 0;
         const marginRight = 0;
         const marginBottom = 0;
@@ -116,7 +116,7 @@ export default class Topics {
         this.svg = d3
             .select("#d3-container-TM")
             .append("svg")
-            .attr("viewBox", [0, 0, width, height])
+            .attr("viewBox", [0, 0, width * .9, height])
             .attr("class", "topic")
 
         const streams = this.svg.append("g")
@@ -130,8 +130,13 @@ export default class Topics {
             .append("title")
             .text(({ key }) => key)
 
-        // tooltip
-        //const tooltip1 = this.svg.append("g");
+        //create empty topic text box
+        const topic =
+            d3.select("#d3-container-TM")
+                .append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 1)
+
         const topics = this.svg
             .selectAll("path")
             .on("mouseenter", function (d) {
@@ -144,20 +149,22 @@ export default class Topics {
                     .duration(200)
             })
             .on("click", (event, d) => {
+                // topicClickDesign();
                 // data is the topic data associated with an area
                 const data = event.srcElement.__data__.key;
                 // the next three lines turn the topic to strings and find those words in the full text
-                this.topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
-                const multiKeys = [...this.IM_map.entries()].filter(({ 1: d }) => this.topicWords.includes(d));
+                const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
+                const multiKeys = [...this.IM_map.entries()].filter(({ 1: d }) => topicWords.includes(d));
                 const multiKeysNum = multiKeys.map(function (x) {
                     return parseInt(x, 10);
                 });
-                console.log("this", this)
-                //console.log("multiKeysNum", multiKeysNum)
-                //
-                this.dispatch.call("topicArray", this, multiKeysNum);
+                this.dispatch.call("topicArray", this, multiKeys, topicWords);
                 // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
                 //this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
+
+                // display the topic words in a div below:
+                topic
+                    .text(topicWords)
             })
 
             //  .on("click", topicToFreq(e))
@@ -167,7 +174,20 @@ export default class Topics {
                     .attr("stroke", "white")
             })
 
+        // const topicClickDesign(e) {
+        //     d3.select(this)
+        //         .raise()
+        //         .attr('stroke-width', '3')
+        //         .attr("stroke", "black")
+        //         .style("opacity", 1)
+        //     //.transition()
+        //     //.duration(200)
+        // }
+
     }
+
+
+
 
     topicToFreq() {
         // on click on a topic, create a newWordArray of the 10 topic words

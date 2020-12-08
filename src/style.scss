@@ -9,8 +9,7 @@ body {
     color: $white;
     font-family: monaco;
     font-weight: 100;
-
-
+    padding: 5%;
 
 .textWrapper{
 
@@ -24,33 +23,49 @@ body {
             margin-top: 0;
             width: 100%;
         }
-        h2{
-            padding-left: 0%;
-            margin-top: 0;
-            width: 100%;
-            color: lightblue;
-        }
-
 
         #grid{
-          padding-left: -3%
+            .gridSvg{
+         //border: 1px solid white;
+            }
         }
 
-    p {
-        margin: auto;
-        padding: 0; // 5% 0 5%;
+         #d3-container { 
+          //border: 1px solid white;
+            }
+    
+
+    .newWord{
+        margin-top: 5%;
+        margin-bottom: 1%;
+        color: lightblue;
     }
 
     .freq {
         color: rgba(255, 255, 255, 0.5);
-        border: 1px solid white;
-        margin-top: 5%;
+        //border: 1px solid white;
+        margin-top: 1%;
+        margin-bottom: 2%;
+
+        //         .circle:hover{
+        // stroke: red;
+        //         }
+        .axis-label {
+            color: pink
+        }
+
     }
+
+    .tooltip{
+        border: 1px solid white;
+        padding: 10px;
+        border-radius: 3px;
+    }
+
 
     .topic {
         color: rgba(255, 255, 255, 0.5);
-        //border: 1px solid white;
-        margin-top: 5%;
+        margin-top: 3%;
         width: 100%;
     }
 }

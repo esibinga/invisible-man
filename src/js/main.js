@@ -2,6 +2,7 @@ import Freq from './freq.js'
 import Text from './text.js'
 import Context from './context.js'
 import Topics from './topics.js'
+import Explainer from './explainer.js'
 import * as d3 from "d3";
 
 export default class App {
@@ -16,6 +17,7 @@ export default class App {
         this.freq = new Freq(this.dispatch)
         this.context = new Context(this.dispatch)
         this.topics = new Topics(this.dispatch)
+        this.explainer = new Explainer(this.dispatch)
         //console.log("working!")
     }
 
