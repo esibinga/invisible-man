@@ -1,28 +1,97 @@
-$darkRed: #7c3b43;
+//$darkRed: #7c3b43;
 $darkDarkRed: #3a2224;
-$lightBlue: #bbd0e3;
+$paleRed: #533d3f;
+$palerRed: #806c6d;
+$lightBlue: #a2cff7;
 $lightGray: #d5d8e1;
 $white: #fffffe;
+$paleWhite: #d1bebf;
+
+
+.header{
+    padding: 0%;
+    margin-top: 0;
+    margin-bottom: 1%;
+    color: $palerRed;
+    font-size: 24px;
+    font-weight: bold;
+   // width: 90%;
+
+}
+#secondary {
+    color: $paleRed;
+    margin-bottom: 3%;
+    font-size: 24px;
+    font-weight: bold;
+   }
+
 
 body {
     background-color: $darkDarkRed;
     color: $white;
     font-family: monaco;
     font-weight: 100;
+    padding: 5%;
 
-    h1{
-        padding: 0 5% 1% 5%;
-       margin-top: 0;
-        width: 110%;
-    }
 .textWrapper{
+
         background-color: $darkDarkRed;
-        width: 90%;
+        width: 70%;
         margin: auto;
-    p {
-        margin: auto;
-        padding: 0 5% 0 5%;
-        
+        //overflow-y: scroll;
+
+
+        #grid{
+            .gridSvg{
+         //border: 1px solid white;
+            }
+        }
+
+         #d3-container { 
+          //border: 1px solid white;
+            }
+    
+        }
+
+    .newWord{
+        margin-top: 2%;
+        margin-bottom: 1%;
+        padding: .25em;
+        // [ ] TO DO: make defualt selection paleRed
+        color: $paleWhite;
+       // border: 1px solid $paleRed;
+    }
+
+    .freq, .freq2 {
+        color: rgba(255, 255, 255, 0.5);
+        //border: 1px solid white;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .context{
+padding-bottom: 2%;
+padding-left: 1%;
+color: $paleWhite;
+    }
+
+    .tooltip{
+        //border: 1px solid $paleRed;
+        padding: 10px;
+        border-radius: 3px;
+        color: $paleWhite;
+    }
+
+    .topic {
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 3%;
+        width: 100%;
     }
 }
-}
+
+
+
+// [ ] TODO: spacing (align all right hand?)
+// [ ] TODO: scroll behavior
+// [ ] TODO: sort out classes... ugh
+// [ ] TODO: color palette

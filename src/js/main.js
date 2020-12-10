@@ -1,40 +1,30 @@
-import { freq } from './freq.js'
-import { text } from './text.js'
-
-freq();
-text();
-
-/*
+import Freq from './freq.js'
+import Text from './text.js'
+import Context from './context.js'
+import Topics from './topics.js'
+import Explainer from './explainer.js'
 import * as d3 from "d3";
-import '../style.scss';
 
-const IMtxt = require('url:../../data/invisible_man.txt');
+export default class App {
+    constructor(newWord, wordNum) {
+        this.newWord = newWord
+        this.wordNum = wordNum
+        this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray");
+    }
 
-// data and manipulations
-d3.text(IMtxt, d3.autoType).then((data) => {
-    data = data.slice(515, -198);
-    const spaceRE = /\s+/g;
-    const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-    const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ')
-    const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/)
+    init() {
+        this.text = new Text(this.dispatch)
+        this.freq = new Freq(this.dispatch)
+        this.context = new Context(this.dispatch)
+        this.topics = new Topics(this.dispatch)
+        this.explainer = new Explainer(this.dispatch)
+        //console.log("working!")
+    }
 
-    const IMobj = cells.reduce(function (acc, cur, i) {
-        acc[i] = cur;
-        return acc;
-    }, {});
+}
 
-    const xah_obj_to_map = (obj => {
-        const mp = new Map;
-        Object.keys(obj).forEach(k => { mp.set(k, obj[k]) });
-        return mp;
-    });
+new App().init();
 
-    const IM_map = xah_obj_to_map(IMobj)
-
-    const wordRollup = d3.rollup((cells), v => v.length, d => d)
-
-    console.log("IM text", data)
-    console.log("IM map", IM_map);
-    console.log("IM unique word map", wordRollup)
-});
-*/
+// updateText function to update when state/ word changes
+// using a class will give text and freq a draw() method to call from outside 
+// d3 event dispatch library (can telegraph dispatch/catch events)
