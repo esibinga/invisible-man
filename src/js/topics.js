@@ -78,23 +78,20 @@ export default class Topics {
             this.IM_map = xah_obj_to_map(this.IMobj)
             this.initTopic();
         })
-        //  console.log("this.IM Map here", this.IM_map)
     }
 
     initTopic() {
-        //console.log("this.IMMAP", this.IM_map)
-
         const width = window.innerWidth * .9;
         const height = 100;
-        const marginLeft = 0;
-        const marginRight = 0;
+        const marginLeft = 5;
+        const marginRight = -25;
         const marginBottom = 0;
         const marginTop = 0;
 
         this.xScale = d3
             .scaleBand()
             .domain(this.topicData.map(d => d.chapter_title))
-            .range([0, width]);
+            .range([marginLeft, width - marginRight]);
 
         this.yScale = d3.scaleLinear()
             .domain([d3.min(this.stack, d => d3.min(d, d => d[1])), d3.max(this.stack, d => d3.max(d, d => d[1]))])
@@ -116,8 +113,10 @@ export default class Topics {
         this.svg = d3
             .select("#d3-container-TM")
             .append("svg")
-            .attr("viewBox", [0, 0, width * .9, height])
+            .attr("viewBox", [0, 0, width, height])
             .attr("class", "topic")
+
+        const fillColorClass = ({ key }) => color(key).replace('#', '')
 
         const streams = this.svg.append("g")
             .selectAll("path")
@@ -127,6 +126,8 @@ export default class Topics {
             .attr("d", area)
             .attr('stroke-width', '.5')
             .attr("stroke", "white")
+            .attr("class", ({ key }) => key) //color(key).replace('#', ''))
+            // console.log(({ key }) => color(key).replace('#', ''))
             .append("title")
             .text(({ key }) => key)
 
@@ -137,9 +138,12 @@ export default class Topics {
                 .attr("class", "tooltip")
                 .style("opacity", 1)
 
+        //
         const topics = this.svg
             .selectAll("path")
             .on("mouseenter", function (d) {
+                d3.selectAll('path')
+                    .style("opacity", .5)
                 d3.select(this)
                     .raise()
                     .attr('stroke-width', '3')
@@ -154,6 +158,7 @@ export default class Topics {
                 const data = event.srcElement.__data__.key;
                 // the next three lines turn the topic to strings and find those words in the full text
                 const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
+                console.log(topicWords)
                 const multiKeys = [...this.IM_map.entries()].filter(({ 1: d }) => topicWords.includes(d));
                 const multiKeysNum = multiKeys.map(function (x) {
                     return parseInt(x, 10);
@@ -164,7 +169,11 @@ export default class Topics {
 
                 // display the topic words in a div below:
                 topic
-                    .text(topicWords)
+                    .text(`topic words: ${topicWords.join(', ')}`)
+
+                d3.select(`.${key}`)
+                    .attr("classed", "clicked")
+                //console.log(event)
             })
 
             //  .on("click", topicToFreq(e))
@@ -185,8 +194,6 @@ export default class Topics {
         // }
 
     }
-
-
 
 
     topicToFreq() {
