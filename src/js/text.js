@@ -1,3 +1,6 @@
+// prints responsive text on the page
+// handles selection and dispatch of the new selected word (newWord) from both text and search bar
+
 import * as d3 from "d3";
 import '../style.scss';
 
@@ -59,12 +62,6 @@ export default class Text {
 
     // TEXT ACROSS SCREEN
     draw() {
-        // const svg = d3
-        //     .select("#d3-container")
-        //     .append("svg")
-        //     .attr("class", "textSvg")
-        //     .attr('width', widthW)
-        //     .attr('height', heightW);
 
         function gridData() {
             var data = new Array();
@@ -75,34 +72,7 @@ export default class Text {
             var height = 25;
             var click = 0;
             var wordlength = 1;
-            /*
-            // iterate for rows	
-            for (var row = 0; row < 7; row++) {
-                data.push(new Array());
 
-                // iterate for cells/columns inside rows
-                for (var column = 0; column < 11 && xpos < widthW * .6; column++) {
-                    data[row].push({
-                        num: num,
-                        word: IMobj[num],
-                        wordlength: (IMobj[num]).length,
-                        x: xpos,
-                        y: ypos,
-                        width: width,
-                        height: height,
-                        click: click
-                    })
-                    // increment the x position by the word length + a set spacing amount
-                    xpos += 6 * (IMobj[num]).length + 9;
-                    // increment the count of each square by 1
-                    num += 1;
-                }
-                // reset the x position after a row is complete
-                xpos = 1;
-                // increment the y position for the next row. Move it down 25 (height variable)
-                ypos += height;
-            }
-*/
             for (var row = 0; row < 100; row++) {
                 data.push(new Array());
 
@@ -133,7 +103,6 @@ export default class Text {
         }
 
         var gridData = gridData();
-        //  console.log(gridData);
 
         var grid = d3.select("#grid")
             .append("svg")
@@ -154,7 +123,7 @@ export default class Text {
             .attr("y", function (d) { return d.y; })
             .attr("width", function (d) { return d.width; })
             .attr("height", function (d) { return d.height; })
-            .style("stroke", "#3a2224")//"#fff0")
+            .style("stroke", "#3a2224")
             .style("fill", "#3a2224")
 
         // below is the real draw() portion:
@@ -187,7 +156,8 @@ export default class Text {
             })
             .on('click', (event, d) => { //d3 v6?
                 //console.log("d", d)
-                //console.log("this", this)
+                console.log("this2", this)
+                console.log("this", this.dispatch)
                 this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
                 d3.selectAll(`text`)
                     .style("fill", palerRed)
@@ -214,5 +184,23 @@ export default class Text {
                 //     .transition(500)
                 // console.log("this museout", this)
             });
+
+        // SEARCH INPUT
+
+        const search = document.getElementById("siteSearch");
+        console.log(search)
+        const button = document.getElementById("searchButton")
+        console.log(button)
+
+        search.addEventListener("keyup", function (event) {
+            if (event.code === 'Enter') {
+                event.preventDefault();
+                button.click();
+            }
+        });
+        d3.select("#searchButton")
+            .on("click", () => {
+                this.dispatch.call("statechange", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+            })
     }
 }
