@@ -62,6 +62,33 @@ body {
        // border: 1px solid $paleRed;
     }
 
+    #search{
+
+    label {
+        display: block;
+        font: .5em;
+    }
+    
+    input,
+    ::placeholder,
+    button {
+        margin: .4rem 0;
+        background-color: $darkDarkRed;
+        color: $paleWhite;
+        font-family: monaco;
+    }
+
+    input {
+        border: 1px solid $paleRed;
+        padding: .3% .5% .3% .5%;
+    }
+    button {
+        background-color: $darkDarkRed;
+        border: 1px solid $paleRed;
+        padding: .3% .5% .3% .5%;
+    }
+}
+
     .freq, .freq2 {
         color: rgba(255, 255, 255, 0.5);
         //border: 1px solid white;

@@ -18,6 +18,7 @@ export default class Freq {
         this.updateFreq = this.updateFreq.bind(this);
         // pick up the "statechange" call
         this.dispatch.on("statechange.freq", this.updateFreq);
+        // this.dispatch.on("statechange.search", this.updateFreq);
         this.dispatch.on("containerChange", this.updateFreq);
         this.dispatch.on("topicArray", this.updateFreqMulti);//this.updateFreq);
         this.IMtxt = require('url:../../data/invisible_man.txt');
