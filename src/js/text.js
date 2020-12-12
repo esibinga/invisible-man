@@ -151,20 +151,24 @@ export default class Text {
                     .transition()
                     .style("fill", palerRed)
                     .attr("opacity", .9)
-                    .delay(2000) // [ ] TODO: make this a function, maybe?
+                    .delay(1000)
+                // [ ] TODO: make this a function, maybe?
                 //[ ] TODO: make .clicked exempt from transitions until a new .clicked is created     
             })
             .on('click', (event, d) => { //d3 v6?
                 //console.log("d", d)
-                console.log("this2", this)
-                console.log("this", this.dispatch)
+                let data = {}
                 this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
                 d3.selectAll(`text`)
+                    .classed("clicked", false)
+                    .transition()
                     .style("fill", palerRed)
+                    .delay(80)
                 d3.selectAll(`text.${(d.word).toLowerCase().replace(punctRE, '').replace(spaceRE, ' ')}`)
                     .style("fill", white)
-                    .attr("classed", "clicked")
-                // console.log("this", d.word)
+                    .classed("clicked", true)
+                //.attr("classed", "clicked")
+                // [ ] TODO: on click, clear context if there is any
             })
             .on('mouseout', function (d) {
                 // d3.selectAll(`text :not(.clicked)`)
@@ -176,28 +180,25 @@ export default class Text {
                 // d3.select(this)
                 //     .style("fill", palerRed)
                 //     .attr("opacity", .9)
-                // d3.selectAll(`text .clicked`)
-                //     .style("fill", white)
-                //     .attr("opacity", 1)
-                //     .attr("font-size", 11)
-                //     .attr("text-anchor", "left")
-                //     .transition(500)
+                d3.selectAll(`.clicked`)
+                    .style("fill", white)
+                    .attr("opacity", 1)
+                    .attr("font-size", 11)
+                    .attr("text-anchor", "left")
+
                 // console.log("this museout", this)
             });
 
-        // SEARCH INPUT
-
+        // SEARCH INPUT - on enter or button click
         const search = document.getElementById("siteSearch");
-        console.log(search)
         const button = document.getElementById("searchButton")
-        console.log(button)
-
         search.addEventListener("keyup", function (event) {
             if (event.code === 'Enter') {
                 event.preventDefault();
                 button.click();
             }
         });
+
         d3.select("#searchButton")
             .on("click", () => {
                 this.dispatch.call("statechange", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));

@@ -2,7 +2,7 @@
   "name": "invisible-man",
   "version": "1.0.0",
   "description": "invisible man",
-  "main": "index.js",
+  "main": "index.html",
   "repository": "https://github.com/esibinga/invisible-man",
   "author": "Eva",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "sass": "^1.27.0"
   },
   "dependencies": {
+    "@jamesives/github-pages-deploy-action": "^3.7.1",
     "d3": "^6.2.0",
     "node-forge": "^0.10.0",
     "node-sass": "^4.14.1"
