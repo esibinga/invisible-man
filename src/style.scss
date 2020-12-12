@@ -31,64 +31,74 @@ body {
     color: $white;
     font-family: monaco;
     font-weight: 100;
-    padding: 5%;
+    padding: 5% 5% 2% 5%;
 
-.textWrapper{
+    .textWrapper{
 
         background-color: $darkDarkRed;
         width: 70%;
-        margin: auto;
-        //overflow-y: scroll;
-
-
-        #grid{
-            .gridSvg{
-         //border: 1px solid white;
-            }
+        margin: auto; 
+        //border: 1px solid $paleRed;   
         }
 
-         #d3-container { 
-          //border: 1px solid white;
-            }
+    #grid{
+        margin-bottom: 5%;
+       :hover{
+           cursor: pointer;
+       }
+        }
+
+        .circle:hover{
+                cursor: pointer;
+        }
+
+    #explanatory{
+            color: $paleRed;
+            font-size: 10px
+        }
+
+    .wrapper{
+            border: 1px solid $paleRed;
+            padding:  .5% 1% 1% 1%;
+        }
+
+    .flex-container {
+        display: flex;
+    }
     
-        }
+    .flex-child {
+        width: 135px;
+        float: left;
+        padding: 5px;
+        color: $palerRed;
+    } 
 
-    .newWord{
-        margin-top: 2%;
+    .newWord.one{
+        max-width: 135px;}
+    .context.one{
+        max-width: 80px;
+        }
+    .multiContext.one{
+        max-width: 120px;
+    }
+
+    #newWord{
+        width: 20%;
+        float: right;
+        padding: 5px;
+        color: $paleWhite
+    }
+
+    #d3-container-context.context{
+        padding: .25em;
+        color: $paleWhite;
+    }
+    #d3-container-multiContext{
         margin-bottom: 1%;
         padding: .25em;
-        // [ ] TO DO: make defualt selection paleRed
         color: $paleWhite;
-       // border: 1px solid $paleRed;
     }
-
-    #search{
-
-    label {
-        display: block;
-        font: .5em;
-    }
-    
-    input,
-    ::placeholder,
-    button {
-        margin: .4rem 0;
-        background-color: $darkDarkRed;
-        color: $paleWhite;
-        font-family: monaco;
-    }
-
-    input {
-        border: 1px solid $paleRed;
-        padding: .3% .5% .3% .5%;
-    }
-    button {
-        background-color: $darkDarkRed;
-        border: 1px solid $paleRed;
-        padding: .3% .5% .3% .5%;
-    }
-}
-
+  
     .freq, .freq2 {
         color: rgba(255, 255, 255, 0.5);
         //border: 1px solid white;
@@ -96,11 +106,7 @@ body {
         margin-bottom: 1%;
     }
 
-    .context{
-padding-bottom: 2%;
-padding-left: 1%;
-color: $paleWhite;
-    }
+
 
     .tooltip{
         //border: 1px solid $paleRed;
@@ -112,8 +118,94 @@ color: $paleWhite;
     .topic {
         color: rgba(255, 255, 255, 0.5);
         margin-top: 3%;
-        width: 100%;
     }
+    #search{
+
+        label {
+            display: block;
+            font: .5em;
+        }
+        
+        input,
+        ::placeholder,
+        button {
+            margin: .4rem 0;
+            background-color: $darkDarkRed;
+            color: $paleWhite;
+            font-family: monaco;
+            border-radius: 2px;
+        }
+    
+        input {
+            border: 1px solid $paleRed;
+            padding: .3% 5% .3% .7%;
+        }
+        input:focus{
+            outline-color: $paleRed;
+        }
+    
+        //remove blue x
+            //input[type="search"]::-webkit-search-decoration,
+            input[type="search"]::-webkit-search-cancel-button
+            //input[type="search"]::-webkit-search-results-button,
+            //input[type="search"]::-webkit-search-results-decoration 
+            {
+                -webkit-appearance:none;
+            }
+    
+        button {
+            background-color: $darkDarkRed;
+            border: 1px solid $paleRed;
+            padding: .3% 1% .3% 1%;
+        }
+        button:focus{
+            outline-color: $paleRed;
+        }
+    }
+
+// about
+
+.about.flex-container {
+    width: 70%;
+    margin: auto;
+    margin-top: 7%
+}
+#about.flex-child.one{
+    width: 50%;
+    max-width: fit-content;
+    padding: 0 3% 0 25%; //// this is a temporary solution to center the links on the page for the video!
+ }
+#github.flex-child.two{
+    width: 50%;
+    max-width: fit-content;
+    padding: 0 3% 0 3%;
+
+    }
+
+a:link {
+  color: $palerRed;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: $palerRed;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: $lightBlue;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: yellow;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
 }
 
 

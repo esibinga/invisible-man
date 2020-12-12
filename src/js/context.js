@@ -30,7 +30,7 @@ export default class Context {
             .select("#d3-container-context")
             .attr("viewBox", [0, 0, width, height * 2])
             .attr("class", "context")
-            .text(`context: ${context}`);
+            .text(`${context}`);
 
         this.svg = d3
             .select(".freq")

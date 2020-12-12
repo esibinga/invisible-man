@@ -18,9 +18,8 @@ export default class Freq {
         this.updateFreq = this.updateFreq.bind(this);
         // pick up the "statechange" call
         this.dispatch.on("statechange.freq", this.updateFreq);
-        // this.dispatch.on("statechange.search", this.updateFreq);
         this.dispatch.on("containerChange", this.updateFreq);
-        this.dispatch.on("topicArray", this.updateFreqMulti);//this.updateFreq);
+        this.dispatch.on("topicArray", this.updateFreqMulti);
         this.IMtxt = require('url:../../data/invisible_man.txt');
         this.IM_map;
         this.IM_readable;
@@ -137,7 +136,7 @@ export default class Freq {
         this.svg.append("text")
             .text("Prologue")
             .attr("transform", `translate(${width * .025}, ${height - height * .25}) rotate(-90)`)
-            .attr("fill", "#999")
+            .attr("fill", palerRed)
             .attr("text-anchor", "middle")
             .attr("font-family", "sans-serif")
             .attr("font-size", smallFont);
@@ -145,7 +144,7 @@ export default class Freq {
         this.svg.append("text")
             .text("Epilogue")
             .attr("transform", `translate(${width - width * .015}, ${height - height * .25}) rotate(-90)`)
-            .attr("fill", "#999")
+            .attr("fill", palerRed)
             .attr("text-anchor", "middle")
             .attr("font-family", "sans-serif")
             .attr("font-size", smallFont);
@@ -155,7 +154,7 @@ export default class Freq {
         const keys = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === newWord)
             .map(([k]) => k);
-        console.log("keys", keys)
+        console.log("this.contextNum", this.contextNum)
 
         this.keysNum = keys.map(function (x) {
             return parseInt(x, 10);
@@ -180,6 +179,7 @@ export default class Freq {
                     d3.select(this)
                         .attr("fill", "#fff")
                         .attr("r", radiusBigger)
+                    //  .classed("moused", true)
                 })
                 .on('click', (event, d) => { //d3 v6?
                     this.contextNum = d
@@ -188,11 +188,19 @@ export default class Freq {
                     this.dispatch.call("wordNum", this, d); //this.IM_map.get(d.toString())
                     // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
                     this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
+
+                    // d3.selectAll(".ugh")
+                    // .attr("fill", "#000")
+                    d3.selectAll(".circle")
+                        .attr("fill", palerRed)
+                        .attr("stroke", palerRed)
                 })
-                .on("mouseout", function (d) {
+                .on("mouseout", function (event, d) {
                     d3.select(this)
-                        .attr("fill", "#9dc1e0")
+                        .attr("fill", paleWhite)
+                        .attr("stroke", paleWhite)
                         .attr("r", radius)
+                        .classed("moused", false)
                 })
 
         this.showNewWord(newWord);
@@ -362,7 +370,7 @@ export default class Freq {
         //         .attr("stroke", "#9dc1e0")
         circle.on("mouseenter", mouseenter)
             //     tooltip
-            //         .attr("transform", `translate( 20, 20)`) // ${d => this.xScale(d[0]), d => this.yScale(d[1])})`)
+            //         .attr("transform", `translate(20, 20)`) // ${d => this.xScale(d[0]), d => this.yScale(d[1])})`)
             // })
             .on('click', (event, d) => { //d3 v6?
                 this.contextNum = d
@@ -380,7 +388,7 @@ export default class Freq {
     showNewWord(newWord) {
         d3.select("#newWord")
             .attr("viewBox", [0, 0, 100, 50])
-            .text(`selected word: ${newWord}`)
+            .text(`${newWord}`)
             .attr("color", '#111')
             .attr("class", "newWord")
     }
