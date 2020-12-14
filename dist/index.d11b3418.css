@@ -176,4 +176,18 @@ body a:active {
   background-color: transparent;
   text-decoration: underline;
 }
+
+.about .text {
+  line-height: 2;
+  font-size: 10pt;
+  color: #d1bebf;
+  margin: auto;
+  width: 70%;
+}
+
+.about .text .h2 {
+  line-height: 2;
+  font-size: 14pt;
+  color: #806c6d;
+}
 /*# sourceMappingURL=index.d11b3418.css.map */

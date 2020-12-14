@@ -209,8 +209,21 @@ a:active {
 }
 
 
-
-// [ ] TODO: spacing (align all right hand?)
 // [ ] TODO: scroll behavior
 // [ ] TODO: sort out classes... ugh
-// [ ] TODO: color palette
+// [ x ] TODO: color palette
+
+// ABOUT
+
+.about .text {
+    line-height: 2;
+    font-size: 10pt;
+    color: $paleWhite;
+    margin: auto;
+    width: 70%;
+}
+.about .text .h2 {
+    line-height: 2;
+    font-size: 14pt;
+    color: $palerRed;
+}
