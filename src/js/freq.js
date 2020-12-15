@@ -20,7 +20,7 @@ export default class Freq {
         this.dispatch.on("statechange.freq", this.updateFreq);
         this.dispatch.on("containerChange", this.updateFreq);
         this.dispatch.on("topicArray", this.updateFreqMulti);
-        this.IMtxt = require('url:../../data/invisible_man.txt');
+        this.IMtxt = '../../data/invisible_man.txt'; //require('url:../../data/invisible_man.txt');
         this.IM_map;
         this.IM_readable;
         this.loadData();

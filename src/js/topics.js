@@ -19,8 +19,12 @@ export default class Topics {
     constructor(dispatch) {
         this.dispatch = dispatch;
         //this.dispatch.on("statechange.topic", this.newWordtoTopic);
-        this.tmResults = require("url:../../data/IM_19_by_20_try_2.csv")
-        this.IMtxt = require('url:../../data/invisible_man.txt');
+        const url2 = require('url')
+        this.tmResults = url2.parse('../../data/IM_19_by_20_try_2.csv');
+        const url = require('url')
+        this.IMtxt = url.parse('../../data/invisible_man.txt');
+        //this.tmResults = require('url:../../data/IM_19_by_20_try_2.csv');
+        //this.IMtxt = require('url:../../data/invisible_man.txt');
         this.topicData;
         this.stack;
         this.IM_map;

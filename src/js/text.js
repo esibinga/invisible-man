@@ -8,7 +8,9 @@ import '../style.scss';
 const widthW = window.innerWidth * .9;
 const heightW = window.innerHeight * .5;
 
-const IMtxt = require('url:../../data/invisible_man.txt');
+// const url = require('url')
+// const IMtxt2 = url.parse('../../data/invisible_man.txt');
+const IMtxt = require('../../data/invisible_man.txt');
 let IMobj;
 let IM_map;
 const spaceRE = /\s+/g;
@@ -33,6 +35,7 @@ export default class Text {
             //data = data.slice(515, -198);
             // starts with prologue
             data = data.slice(940, -198);
+            console.log("data ugh are we back to this", data)
             //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
             // this is called noPunct but it actually does include it
             // [ ] TO DO: fix that ^^
