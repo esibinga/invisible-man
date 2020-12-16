@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "invisible man",
   "repository": "https://github.com/esibinga/invisible-man",
-  "main": "dist/index.html",
   "author": "Eva",
   "license": "MIT",
+  "targets": {
+    "app": {
+      "distDir": "./invisible-man"
+    }
+  },
   "scripts": {
     "dev": "parcel src/index.html",
     "prebuild": "rm -rf dist",
