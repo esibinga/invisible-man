@@ -1,6 +1,6 @@
 // imports
-import * as d3 from "d3";
-import '../style.scss';
+import * as d3 from 'd3';
+import "../style.scss";
 
 // constants / globals
 

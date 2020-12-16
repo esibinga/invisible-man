@@ -2,21 +2,30 @@
 // handles selection and dispatch of the new selected word (newWord) from both text and search bar
 
 import * as d3 from "d3";
-import '../style.scss';
+import "../style.scss";
+import fs from "fs";
 
 // CONSTANTS AND GLOBALS
 const widthW = window.innerWidth * .9;
 const heightW = window.innerHeight * .5;
 
-// const url = require('url')
-// const IMtxt2 = url.parse('../../data/invisible_man.txt');
-const IMtxt = require('../../data/invisible_man.txt');
+// const url = require("url")
+// const IMtxt = url.parse("../../data/invisible_man.txt");
+//const IMtxt = "../../data/invisible_man.txt";
+const IMtxt = require("url:../../data/invisible_man.txt");
+//const IMtxt = "../../data/invisible_man.txt";
+// console.log(__dirname)
+// const IMtxt = fs.readFileSync(__dirname + '/invisible_man.txt', 'utf8')
+
+
+//console.log("IM TEXT", IMtxt.default)
 let IMobj;
 let IM_map;
+//const IMtxt = IMtxt1.default;
 const spaceRE = /\s+/g;
-const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-const white = '#fffeee'
-const lightBlue = '#a2cff7';
+const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\ "!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+const white = "#fffeee"
+const lightBlue = "#a2cff7";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
 const paleWhite = "#d1bebf";
