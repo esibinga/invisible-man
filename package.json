@@ -7,7 +7,7 @@
   "license": "MIT",
   "targets": {
     "app": {
-      "distDir": "/dist/"
+      "distDir": "./dist"
     }
   },
   "scripts": {
