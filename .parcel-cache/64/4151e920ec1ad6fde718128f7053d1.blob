@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>About</title>
+    <meta charset="UTF-8">
+    <link href="ca7ae774796c1007f9524efe4d993d7a" rel="stylesheet">
+</head>
+
+<div class="header">On the lower frequencies: </div>
+<div id="secondary">an exploratory concordance tool for Invisible Man</div>
+
+<body class="about">
+    <div class="text">
+        <div class="h2">
+            About this project: <br> </div>
+        <div>
+            I first read <i>Invisible Man</i> in 2014 in a "Great American Novel" college course. A year later, when I
+            took "African American Writers and Autobiography," I kept thinking about the book. We read only memoirs and
+            autobiographies, but themes from Ellison's novel kept coming up. I wished there were a way to "see" the
+            threads of connection between Ellison's extended metaphor of Black identity and subjecthood in fiction and
+            some of the lived experiences and reflections of authors like Richard Wright, Maya Angelou, and Samuel
+            Delaney. These ideas already exist broadly in scholarly writing: one of the major points of Ellison's novel
+            is that it's an everyman: he even ends it with the question, "Who knows, but that, on the lower frequencies,
+            I speak for you?"
+            <br><br>
+            I was fascinated, however, by the idea of visualizing these "lower frequencies." I made it the focus of my
+            senior thesis in the English department, and thus was born my fascination with topic modeling as a way to
+            suggest theme and metaphorical significance.
+            I love the idea that topic modeling might actually pick up on some of those lower frequencies in
+            <i>Invisible Man</i>, to
+            digitally point out patterns, associations, and signifiers that slip past the analog reader’s focus, or
+            are
+            outside the physical realms of analog analysis.
+            <br><br>
+            That being said, what I actually produced in 2017 was bar chart in R that was extremely hard to read or
+            intuit unless you had quite a bit of background on the project. This reboot gives the topic model a
+            home that is A) not in a 60 page paper written by an undergrad and B) accessible and interactive.
+        </div>
+        <br><br>
+        <div class="h2">
+            About topic modeling: <br> </div>
+        <div>
+            Topic modeling is a way of measuring relationships between words. This model uses LDA topic modeling, a
+            statistical model that aims to
+            identify, from a text sample, the topics that could have originally been used to compile the text sample.
+            The researcher decides how many topics the model will return (20 was best when I ran the model), and then
+            through a process called Gibbs
+            Sampling, the topic model “sorts” the text into that number of topics (<a href="e144de2d0df6c3d7ab5806cc2995cbdd">Jockers</a>). The end result is comprised
+            of lists of highly correlated words that make up different “topics.” Another way of understanding it is
+            this: when Ellison uses the word “invisibility,” he uses the words “music”, “light”, “hole” and “world”
+            disproportionately often compared to how often he uses those words when he has not just used the word
+            “invisibility.” In plain English: when Ellison talks about invisibility, he also often talks about music,
+            light, the protagonist’s hole, and the world.
+            <br><br>
+            You can see this in the word frequency plot for each topic -- words are not randomly or evenly distributed
+            through the novel, but clustered into "topics" based on what Ellison is writing about on that page or in
+            this chapter.
+        </div>
+        <br><br>
+        <div>
+
+        </div>
+    </div>
+    <div class="about flex-container">
+        <div class="about flex-child one" id="about">
+            <a href="55c82c7659fcfaa9ad46aa7aa726c753">back to the project</a></div>
+        <div class="about flex-child two" id="github">
+            <a href="efb0d44c0d46330cc38500fabbe2bc71">about me</a>
+        </div>
+    </div>
+</body>
+
+</html>

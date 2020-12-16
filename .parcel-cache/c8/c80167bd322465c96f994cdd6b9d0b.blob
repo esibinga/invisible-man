@@ -1,0 +1,46 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _freq = _interopRequireDefault(require("./freq.js"));
+
+var _text = _interopRequireDefault(require("./text.js"));
+
+var _context = _interopRequireDefault(require("./context.js"));
+
+var _topics = _interopRequireDefault(require("./topics.js"));
+
+var _explainer = _interopRequireDefault(require("./explainer.js"));
+
+var d3 = _interopRequireWildcard(require("d3"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+class App {
+  constructor(newWord, wordNum) {
+    this.newWord = newWord;
+    this.wordNum = wordNum;
+    this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray");
+  }
+
+  init() {
+    this.text = new _text.default(this.dispatch);
+    this.freq = new _freq.default(this.dispatch);
+    this.context = new _context.default(this.dispatch);
+    this.topics = new _topics.default(this.dispatch);
+    this.explainer = new _explainer.default(this.dispatch); //console.log("working!")
+  }
+
+}
+
+exports.default = App;
+new App().init(); // updateText function to update when state/ word changes
+// using a class will give text and freq a draw() method to call from outside 
+// d3 event dispatch library (can telegraph dispatch/catch events)

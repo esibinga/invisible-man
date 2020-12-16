@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>Invisible Man</title>
+    <meta charset="UTF-8">
+    <link href="4aef6043cb0ccfd3b0ce8c4897d3a9e3" rel="stylesheet">
+</head>
+
+<div class="header">On the lower frequencies: </div>
+<div id="secondary">an exploratory concordance tool for Invisible Man</div>
+
+<body>
+    <script src="0c4c821e7b76e0ddd31e31c65675f6a9"></script>
+    <div class="textWrapper">
+        <div id="d3-container"></div>
+        <div id="grid"></div>
+    </div>
+    <div class="lex wrapper">
+        <!--div id="explanatory">This lexical dispersion plot is a concordance: a record of every instance of a word in a
+            text.
+            This
+            concordance takes only exact strings, but a future version will have the option to return similar words--
+            e.g.
+            "walking" or "walked" in addition to "walk".</div-->
+
+        <div class="newWordWrapper flex-container">
+            <div class="newWord flex-child one">selected word:</div>
+            <div class="newWord flex-child two" id="newWord"></div>
+        </div>
+
+        <div id="d3-container-freq"></div>
+
+        <div class="context flex-container">
+            <div class="context flex-child one">context:</div>
+            <div class="context flex-child two" id="d3-container-context"></div>
+        </div>
+
+    </div>
+    <div class="topic wrapper">
+
+        <div id="d3-container-freq2"></div>
+        <div class="multiContext flex-container">
+            <div class="multiContext flex-child one">topic words:</div>
+            <div class="multiContext flex-child two" id="d3-container-multiContext"></div>
+        </div>
+
+        <div id="d3-container-TM"></div>
+        <div id="search">
+            <input type="search" id="siteSearch" class="search" placeholder="Search for a word:">
+            <button id="searchButton">--></button>
+        </div>
+    </div>
+
+    <div class="about flex-container">
+        <div class="about flex-child one" id="about">
+            <a href="965f1975bfe58dfe6b6e64bd0b45ac0d">about this project</a></div>
+        <!--a href="https://esibinga.github.io/home/about.html">about me</a-->
+        <div class="about flex-child two" id="github">
+            <a href="e54a9381161865a65b5dbab7eff7a675">about me</a>
+        </div>
+    </div>
+</body>
+
+</html>
