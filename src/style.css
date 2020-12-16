@@ -1,10 +1,10 @@
 body {
-  background-color: #7c3b43;
+  background-color: #3a2224;
   color: #bbd0e3;
   font-family: monaco;
 }
 body .h1 {
-  color: #7c3b43;
+  color: #3a2224;
 }
 body .flexgrid {
   display: grid;

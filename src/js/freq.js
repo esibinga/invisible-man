@@ -21,13 +21,7 @@ export default class Freq {
         this.dispatch.on("statechange.freq", this.updateFreq);
         this.dispatch.on("containerChange", this.updateFreq);
         this.dispatch.on("topicArray", this.updateFreqMulti);
-        // this.IMtxt = fs.readFileSync(__dirname + '/invisible_man.txt', 'utf8')
-        // console.log("IMTEXT", this.IMtxt)
-        // this.IMtxt = "../../data/invisible_man.txt"; //
         this.IMtxt = require("url:../../data/invisible_man.txt");
-        //const url = require("url")
-        // this.IMtxt = url.parse("../../data/invisible_man.txt");
-        // this.IMtxt = IMtxt;
         this.IM_map;
         this.IM_readable;
         this.loadData();

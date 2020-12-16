@@ -9,19 +9,10 @@ import fs from "fs";
 const widthW = window.innerWidth * .9;
 const heightW = window.innerHeight * .5;
 
-// const url = require("url")
-// const IMtxt = url.parse("../../data/invisible_man.txt");
-//const IMtxt = "../../data/invisible_man.txt";
+
 const IMtxt = require("url:../../data/invisible_man.txt");
-//const IMtxt = "../../data/invisible_man.txt";
-// console.log(__dirname)
-// const IMtxt = fs.readFileSync(__dirname + '/invisible_man.txt', 'utf8')
-
-
-//console.log("IM TEXT", IMtxt.default)
 let IMobj;
 let IM_map;
-//const IMtxt = IMtxt1.default;
 const spaceRE = /\s+/g;
 const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\ "!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
 const white = "#fffeee"
@@ -44,7 +35,6 @@ export default class Text {
             //data = data.slice(515, -198);
             // starts with prologue
             data = data.slice(940, -198);
-            console.log("data ugh are we back to this", data)
             //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
             // this is called noPunct but it actually does include it
             // [ ] TO DO: fix that ^^

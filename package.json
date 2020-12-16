@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "invisible man",
   "repository": "https://github.com/esibinga/invisible-man",
+  "main": "dist/index.html",
   "author": "Eva",
   "license": "MIT",
   "scripts": {
