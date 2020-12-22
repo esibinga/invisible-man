@@ -19,7 +19,7 @@ export default class Context {
         const height = 50;
         console.log("wordnum", wordNum)
         const boldedNewWord = this.IM_map.get(wordNum.toString())
-        let context = this.IM_map.get((wordNum - 3).toString()) + " " + this.IM_map.get((wordNum - 2).toString()) + " " + this.IM_map.get((wordNum - 1).toString()) + " " + boldedNewWord + " " + this.IM_map.get((wordNum + 1).toString()) + " " + this.IM_map.get((wordNum + 2).toString()) + " " + this.IM_map.get((wordNum + 3).toString());
+        let context = this.IM_map.get((wordNum - 5).toString()) + " " + this.IM_map.get((wordNum - 4).toString()) + " " + this.IM_map.get((wordNum - 3).toString()) + " " + this.IM_map.get((wordNum - 2).toString()) + " " + this.IM_map.get((wordNum - 1).toString()) + " " + boldedNewWord + " " + this.IM_map.get((wordNum + 1).toString()) + " " + this.IM_map.get((wordNum + 2).toString()) + " " + this.IM_map.get((wordNum + 3).toString()) + " " + this.IM_map.get((wordNum + 4).toString()) + " " + this.IM_map.get((wordNum + 5).toString());
         // [ ] this works, but IM_map has no punctuation -- would be better coming from a source with more formatting
         // using IM_readable for context doesn't work because the numbers are not the same when there is punctuation included or not
 

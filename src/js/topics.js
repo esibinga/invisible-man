@@ -151,11 +151,9 @@ export default class Topics {
         this.yAxis = d3.axisLeft(this.yScale);
 
         const area = d3.area()
-            .x(d => this.xScale(d.data.chapter_midpoint)) //chapter_start))
+            .x(d => this.xScale(d.data.chapter_midpoint))
             .y0(d => this.yScale(d[0]))
             .y1(d => this.yScale(d[1]))
-
-        // console.log("this.topicDat.data", this.topicData.data.chapter_title)
 
         const color = d3.scaleOrdinal()
             .domain(this.stack.map(d => d.key))
@@ -210,7 +208,7 @@ export default class Topics {
                 d3.select(this)
                     .raise()
                     .attr('stroke-width', '3')
-                    .attr("stroke", ({ key }) => color(key))//"black")
+                    .attr("stroke", ({ key }) => color(key))
                     .style("opacity", 1)
                     .transition()
                     .duration(200)

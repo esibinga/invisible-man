@@ -1,4 +1,4 @@
-//$darkRed: #7c3b43;
+$darkRed: #533d3f4b;
 $darkDarkRed: #3a2224;
 $paleRed: #533d3f;
 $palerRed: #806c6d;
@@ -43,24 +43,32 @@ body {
 
     #grid{
         margin-bottom: 5%;
-       :hover{
-           cursor: pointer;
-       }
+        :hover{
+            cursor: pointer;
+        }
+        height: 400px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+
+        .gridSvg{
+            height: 10000px;
         }
 
-        .circle:hover{
-                cursor: pointer;
-        }
+    }
+
+    .circle:hover{
+        cursor: pointer;
+    }
 
     #explanatory{
-            color: $paleRed;
-            font-size: 10px
-        }
+        color: $paleRed;
+        font-size: 10px
+    }
 
     .wrapper{
-            border: 1px solid $paleRed;
-            padding:  .5% 1% 1% 1%;
-        }
+        border: 1px solid $paleRed;
+        padding:  .5% 1% 1% 1%;
+    }
 
     .flex-container {
         display: flex;
@@ -73,27 +81,28 @@ body {
         color: $palerRed;
     } 
 
-    .newWord.one{
-        max-width: 135px;}
-    .context.one{
+    .newWord.one {
+        max-width: 135px;
+    }
+    .context.one {
         max-width: 80px;
-        }
-    .multiContext.one{
+    }
+    .multiContext.one {
         max-width: 120px;
     }
 
-    #newWord{
+    #newWord {
         width: 20%;
         float: right;
         padding: 5px;
         color: $paleWhite
     }
 
-    #d3-container-context.context{
+    #d3-container-context.context {
         padding: .25em;
         color: $paleWhite;
     }
-    #d3-container-multiContext{
+    #d3-container-multiContext {
         margin-bottom: 1%;
         padding: .25em;
         color: $paleWhite;
@@ -105,8 +114,6 @@ body {
         margin-top: 1%;
         margin-bottom: 1%;
     }
-
-
 
     .tooltip{
         //border: 1px solid $paleRed;
@@ -163,8 +170,7 @@ body {
         }
     }
 
-// about
-
+// about links
 .about.flex-container {
     width: 70%;
     margin: auto;
@@ -179,7 +185,6 @@ body {
     width: 50%;
     max-width: fit-content;
     padding: 0 3% 0 3%;
-
     }
 
 a:link {
@@ -209,7 +214,7 @@ a:active {
 }
 
 
-// [ ] TODO: scroll behavior
+// [ x ] TODO: scroll behavior
 // [ ] TODO: sort out classes... ugh
 // [ x ] TODO: color palette
 
@@ -220,10 +225,102 @@ a:active {
     font-size: 10pt;
     color: $paleWhite;
     margin: auto;
-    width: 70%;
+    width: 80%;
 }
 .about .text .h2 {
     line-height: 2;
     font-size: 14pt;
     color: $palerRed;
 }
+
+
+
+// CSS dropdowns -- modified from https://www.digitalocean.com/community/tutorials/css-collapsible 
+input[type='checkbox'] {
+    display: none;
+  }
+
+  .lbl-toggle, .lbl-toggle1, .lbl-toggle2, .lbl-toggle3 {
+    display: block;
+    font-size: 1.2rem;
+    text-align: left;
+    padding: 1rem;
+  
+    cursor: pointer;
+  
+    border-radius: 3px;
+    border: 1px solid $paleRed;  
+    transition: all 0.5s ease-out;
+  }
+  
+  .lbl-toggle:hover, .lbl-toggle1:hover, .lbl-toggle2:hover, .lbl-toggle3:hover{
+    color: white;
+  }
+
+  // little arrows
+  .lbl-toggle::before, .lbl-toggle1::before, .lbl-toggle2::before, .lbl-toggle3::before {
+    content: ' ';
+    display: inline-block;
+  
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid currentColor;
+  
+    vertical-align: middle;
+    margin-right: .7rem;
+    transform: translateY(-2px);
+  
+    transition: transform .4s ease-out;
+  }
+
+  .collapse-content .content-inner, .collapse-content1 .content-inner1, .collapse-content2 .content-inner2, .collapse-content3 .content-inner3 {
+    border-bottom: 1px solid $paleRed;  
+    border-left: 1px solid $paleRed; 
+    border-right: 1px solid $paleRed; 
+
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 2px;
+    padding: .5rem 1rem;
+
+  }
+
+  .collapse-content, .collapse-content1, .collapse-content2, .collapse-content3 {
+    max-height: 0px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+       transition: max-height .75s ease-in-out;
+  }
+
+  ::-webkit-scrollbar {
+    background-color: $darkDarkRed; 
+    width: 10px;
+    height: 10px;  
+  }
+
+  ::-webkit-scrollbar-thumb {
+     background-color: $darkRed; 
+     border-radius: 3px;
+    border: 1px solid $paleRed;
+   }
+
+   ::-webkit-scrollbar-track {
+        border-radius: 3px;
+     border: 1px solid $darkRed;
+   }
+   
+   ::-webkit-scrollbar-corner {
+    background-color: $darkDarkRed; 
+   }
+
+  .toggle:checked + .lbl-toggle + .collapse-content, .toggle1:checked + .lbl-toggle1 + .collapse-content1, .toggle2:checked + .lbl-toggle2 + .collapse-content2, .toggle3:checked + .lbl-toggle3 + .collapse-content3 {
+    max-height: 90vh;
+  }
+
+  .toggle:checked + .lbl-toggle::before, .toggle1:checked + .lbl-toggle1::before, .toggle2:checked + .lbl-toggle2::before, .toggle3:checked + .lbl-toggle3::before{
+    transform: rotate(90deg) translateX(-3px);
+  }
+  
+  .toggle:checked + .lbl-toggle, .toggle1:checked + .lbl-toggle1, .toggle2:checked + .lbl-toggle2, .toggle3:checked + .lbl-toggle3  {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }

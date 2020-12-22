@@ -75,7 +75,7 @@ export default class Text {
             var click = 0;
             var wordlength = 1;
 
-            for (var row = 0; row < 100; row++) {
+            for (var row = 0; row < 500; row++) {
                 data.push(new Array());
 
                 // iterate for cells/columns inside rows
