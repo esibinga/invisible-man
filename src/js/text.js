@@ -137,7 +137,7 @@ export default class Text {
             .attr("y", function (d) { return d.y + d.height / 2 })
             //.attr("text-anchor", "left")
             .attr("dy", ".5em")
-            .attr("font-size", 11)
+            // .attr("font-size", 11)
             .style("fill", palerRed)
             .attr("opacity", .9)
             .attr("class", function (d) { return (d.word).toLowerCase().replace(punctRE, '').replace(spaceRE, ' ') })

@@ -7,6 +7,9 @@ $lightGray: #d5d8e1;
 $white: #fffffe;
 $paleWhite: #d1bebf;
 
+.mobile {
+    display: none;
+}
 
 .header{
     padding: 0%;
@@ -30,7 +33,8 @@ body {
     background-color: $darkDarkRed;
     color: $white;
     font-family: monaco;
-    font-weight: 100;
+    font-weight: 100; 
+    font-size: 11px;
     padding: 5% 5% 2% 5%;
 
     .textWrapper{
@@ -227,3 +231,42 @@ a:active {
     font-size: 14pt;
     color: $palerRed;
 }
+
+
+
+// MOBILE
+
+@media screen and (max-aspect-ratio: 4/5) {
+    
+    .textWrapper {
+      display: none;
+    }
+
+    // move search bar to the top of the screen:
+    #search{
+        display: none;
+    }
+    .mobile#search {
+     display: block;
+    }
+  }
+
+  .about.text{
+      width: 90%;
+  }
+
+// FLIPPED SCREEN MOBILE
+@media screen and (max-aspect-ratio: 4/5) {
+    
+    svg.gridSvg {
+      height: 200px;
+    }
+
+    // move search bar to the top of the screen:
+    #search{
+        display: none;
+    }
+    .mobile#search {
+     display: block;
+    }
+  }
