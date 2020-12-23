@@ -87,6 +87,9 @@ body .context.one {
 body .multiContext.one {
   max-width: 120px;
 }
+body .hint.one {
+  max-width: 50px;
+}
 body #newWord {
   width: 20%;
   float: right;
@@ -101,6 +104,12 @@ body #d3-container-multiContext {
   margin-bottom: 1%;
   padding: 0.25em;
   color: #d1bebf;
+}
+body #d3-container-hint {
+  padding: 0.25em;
+  padding-top: 0.75em;
+  color: #d1bebf;
+  font-size: 12px;
 }
 body .freq, body .freq2 {
   color: rgba(255, 255, 255, 0.5);

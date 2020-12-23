@@ -476,7 +476,7 @@ class App {
   constructor(newWord, wordNum) {
     this.newWord = newWord;
     this.wordNum = wordNum;
-    this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray");
+    this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray", "scroll", "newWordtoTopic");
   }
 
   init() {
@@ -484,15 +484,13 @@ class App {
     this.freq = new _freq.default(this.dispatch);
     this.context = new _context.default(this.dispatch);
     this.topics = new _topics.default(this.dispatch);
-    this.explainer = new _explainer.default(this.dispatch); //console.log("working!")
+    this.explainer = new _explainer.default(this.dispatch);
   }
 
 }
 
 exports.default = App;
-new App().init(); // updateText function to update when state/ word changes
-// using a class will give text and freq a draw() method to call from outside 
-// d3 event dispatch library (can telegraph dispatch/catch events)
+new App().init();
 },{"./freq.js":"7HoFH","./text.js":"3xhgx","./context.js":"5eLxJ","./topics.js":"2FcNY","./explainer.js":"1KA0m","d3":"7FiJ2"}],"7HoFH":[function(require,module,exports) {
 "use strict";
 
@@ -505,19 +503,17 @@ var d3 = _interopRequireWildcard(require("d3"));
 
 require("../style.scss");
 
-var _fs = _interopRequireDefault(require("fs"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
-// displays lexical dispersion chart
+// displays lexical dispersion chart for single selected word and for words from the selected topic
 // displays the selected word in the header
-//globals
+// GLOBALS
 const radius = 3;
 const radiusBigger = 7;
+const spaceRE = /\s+/g;
+const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
 const paleWhite = "#d1bebf";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
@@ -525,24 +521,20 @@ const palerRed = "#806c6d";
 class Freq {
   constructor(dispatch) {
     this.dispatch = dispatch;
-    this.updateFreq = this.updateFreq.bind(this); // pick up the "statechange" call
-
+    this.updateFreq = this.updateFreq.bind(this);
     this.dispatch.on("statechange.freq", this.updateFreq);
     this.dispatch.on("containerChange", this.updateFreq);
     this.dispatch.on("topicArray", this.updateFreqMulti);
     this.IMtxt = require("url:../../data/invisible_man.txt");
     this.IM_map;
     this.IM_readable;
-    this.loadData(); //can separate updateFreq into smaller functions
-    // or - give Freq an internal state property that updates every time 
-    // save the new word to this.newWOrd to keep track of it
-  } // data and manipulations
+    this.loadData();
+  } // DATA & CLEANING / RESTRUCTURING
 
 
   loadData() {
     d3.text(this.IMtxt, d3.autoType).then(data => {
-      const spaceRE = /\s+/g;
-      const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+      // take out meta text, carriage breaks, punctuation, and converts to lowercase (unlike text.js which maintains readability)
       const IM_noMeta_noPunct = data.slice(515, -198).replace(punctRE, '').replace(spaceRE, ' ');
       const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/);
       this.IMobj = cells.reduce(function (acc, cur, i) {
@@ -563,14 +555,24 @@ class Freq {
         return mp;
       };
 
-      this.IM_map = xah_obj_to_map(this.IMobj); //const wordRollup = d3.rollup((cells), v => v.length, d => d)
-
+      this.IM_map = xah_obj_to_map(this.IMobj);
       let newWord;
       this.draw(newWord);
-      this.showNewWord("");
+      this.showNewWord(""); //inital value is nothing
+
       this.drawFreqMulti();
     });
   }
+
+  // DISPLAY THE SELECTED WORD
+  showNewWord(newWord) {
+    if (newWord == undefined) {
+      newWord = "";
+    }
+
+    d3.select("#newWord").attr("viewBox", [0, 0, 100, 50]).text(`${newWord}`).attr("color", '#111').attr("class", "newWord");
+  } // INITIALIZE SINGLE FREQUENCY CHART
+
 
   draw(newWord) {
     const width = window.innerWidth * .9;
@@ -578,18 +580,10 @@ class Freq {
     const marginLeft = 10;
     const marginRight = 10;
     const marginBottom = 0;
-    const marginTop = 10;
     const smallFont = 12;
-    const medFont = 14;
-    const bigFont = 20;
-    const lightGray = "#999";
-    const lightBlue = "#9dc1e0"; //"#bbd0e3";
-
-    const medGray = "#777";
-    const darkGray = "#444";
     this.svg = d3.select("#d3-container-freq").append("svg").attr("class", "freq").attr("viewBox", [0, 0, width, height]);
     this.xScale = d3.scaleLinear().domain([0, 176665]).range([marginLeft, width - marginRight]);
-    this.yScale = d3.scaleLinear().domain([10, 0]).range([0, height]); // make chapter markings for x-axis
+    this.yScale = d3.scaleLinear().domain([10, 0]).range([0, height]); // make chapter markings for x-axis scale
 
     const chapterTicks = [...this.IM_map.entries()].filter(({
       1: v
@@ -605,41 +599,41 @@ class Freq {
     });
     this.xAxis = d3.axisBottom(this.xScale).tickValues(this.chapterTicksObj.map(a => a.num)).tickSize(-height).tickFormat("");
     this.svg.attr("class", "freq").append("g").attr("transform", `translate(0, ${height - marginBottom})`).call(this.xAxis).append("text").attr("class", "axis-label").attr("x", "45%").attr("dy", "3em").text(`something`);
-    this.yAxis = d3.axisLeft(this.yScale);
+    this.yAxis = d3.axisLeft(this.yScale); // add context with "Prologue" and "Epilogue" labels
+
     this.svg.append("text").text("Prologue").attr("transform", `translate(${width * .025}, ${height - height * .25}) rotate(-90)`).attr("fill", palerRed).attr("text-anchor", "middle").attr("font-family", "sans-serif").attr("font-size", smallFont);
     this.svg.append("text").text("Epilogue").attr("transform", `translate(${width - width * .015}, ${height - height * .25}) rotate(-90)`).attr("fill", palerRed).attr("text-anchor", "middle").attr("font-family", "sans-serif").attr("font-size", smallFont);
-  }
+  } // UPDATE SINGLE FREQUENCY CHART
+
 
   updateFreq(newWord) {
+    console.log("running updateFreq");
     const keys = [...this.IM_map.entries()].filter(({
       1: v
     }) => v === newWord).map(([k]) => k);
-    console.log("this.contextNum", this.contextNum);
     this.keysNum = keys.map(function (x) {
       return parseInt(x, 10);
     });
-    console.log("keysNum", this.keysNum); // console.log("IM_Map", this.IM_map)
-
+    console.log("keysNum", this.keysNum);
     console.log("newWOrd", newWord);
     const circle = this.svg.selectAll("circle").data(this.keysNum).join("circle").attr("class", "circle").attr("cy", this.yScale(5)).attr("cx", d => this.xScale(d)).attr("r", radius).attr("fill", paleWhite).attr("opacity", 1).attr("stroke", paleWhite).on("mouseenter", function (d) {
-      d3.select(this).attr("fill", "#fff").attr("r", radiusBigger); //  .classed("moused", true)
+      d3.select(this).attr("fill", "#fff").attr("r", radiusBigger);
     }).on('click', (event, d) => {
-      //d3 v6?
-      this.contextNum = d;
-      console.log("this in freq", this); // dispatch the word number to context:
+      this.contextNum = d; // dispatch word number to text -- this one seems very heavy on the browser
+      // this.dispatch.call("scroll", this, d);
+      // dispatches the word number to context
 
-      this.dispatch.call("wordNum", this, d); //this.IM_map.get(d.toString())
-      // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
+      this.dispatch.call("wordNum", this, d); // dispatch current word again so that freq.js chart continues to display with the current word until newWord is changed by a click event in text.js:
 
-      this.dispatch.call("statechange", this, this.IM_map.get(d.toString())); // d3.selectAll(".ugh")
-      // .attr("fill", "#000")
-
+      this.dispatch.call("statechange", this, this.IM_map.get(d.toString()));
       d3.selectAll(".circle").attr("fill", palerRed).attr("stroke", palerRed);
     }).on("mouseout", function (event, d) {
       d3.select(this).attr("fill", paleWhite).attr("stroke", paleWhite).attr("r", radius).classed("moused", false);
-    });
+    }); // because newWord must be reasserted every time the frequency chart is clicked, recall this method on every freq update   
+
     this.showNewWord(newWord);
-  }
+  } // INIT TOPIC FREQ CHART
+
 
   drawFreqMulti() {
     const width = window.innerWidth * .9;
@@ -647,18 +641,9 @@ class Freq {
     const marginLeft = 10;
     const marginRight = 10;
     const marginBottom = 0;
-    const marginTop = 10;
-    const smallFont = 12;
-    const medFont = 14;
-    const bigFont = 20;
-    const lightGray = "#999";
-    const lightBlue = "#9dc1e0"; //"#bbd0e3";
-
-    const medGray = "#777";
-    const darkGray = "#444";
     this.multiSvg = d3.select("#d3-container-freq2").append("svg").attr("class", "freqMulti").attr("viewBox", [0, 0, width, height]);
     this.xScale = d3.scaleLinear().domain([0, 176665]).range([marginLeft, width - marginRight]); //yScale is only drawn in updateFreqMulti once it has access to topic words from dispatch
-    // make chapter markings for x-axis
+    // make chapter markings for x-axis scale
 
     const chapterTicks = [...this.IM_map.entries()].filter(({
       1: v
@@ -674,23 +659,29 @@ class Freq {
     });
     this.xAxis = d3.axisBottom(this.xScale).tickValues(this.chapterTicksObj.map(a => a.num)).tickSize(-height).tickFormat("");
     this.multiSvg.attr("class", "freq2").append("g").attr("transform", `translate(0, ${height - marginBottom})`).call(this.xAxis).append("text").attr("class", "axis-label").attr("x", "45%").attr("dy", "3em").text(`something`).attr("fill", "#fff");
-    this.tooltip = //this.svg
-    d3.select("#d3-container-freq2").append("div").attr("class", "tooltip").attr("transform", `translate(20, -100)`).style("opacity", 1);
-  }
+    this.tooltip = d3.select("#d3-container-freq2").append("div").attr("class", "tooltip").attr("transform", `translate()`).style("opacity", 1); // for another day: tooltip next to element rather than below the graph
+    // this.tooltip =
+    //     d3.select(".freq2")
+    //         .append("div")
+    //         .attr("class", "tooltip")
+    //         //.attr("transform", `translate(20, -100)`)//${x[0], y[0]})`)
+    //         .attr("opacity", 1)
+    //         .attr("width", "10px")
+    //         .attr("height", "10px")
+    //         .attr("fill", "white")
+  } // UPDATE TOPIC FREQ CHART
+
 
   updateFreqMulti(multiKeys, topicWords) {
     const width = window.innerWidth * .9;
     const marginLeft = 10;
-    const marginRight = 10; // re-select (not sure why this.multiSvg had to be re-instated here)
+    const marginRight = 10; // re-select (not sure why this.multiSvg had to be re-instated here (and at tooltip below, instead of this.tooltip))
 
     this.multiSvg = d3.select(".freq2");
-    this.xScale = d3.scaleLinear().domain([0, 176665]).range([marginLeft, width - marginRight]);
-    this.yScale = d3.scaleOrdinal().domain(topicWords).range([5, 15, 25, 35, 45, 55, 65, 75, 85, 95]);
-    this.yAxis = d3.axisLeft(this.yScale).tickValues(topicWords); //  console.log("multi KeysNum", multiKeysNum) -- this is just numbers, no words
+    this.xScale = d3.scaleLinear().domain([0, 176665]).range([marginLeft, width - marginRight]); // make y-scale, now that topicWords is available via d3.dispatch
 
-    const multiKeysNum = multiKeys.map(function (x) {
-      return parseInt(x, 10);
-    });
+    this.yScale = d3.scaleOrdinal().domain(topicWords).range([5, 15, 25, 35, 45, 55, 65, 75, 85, 95]);
+    this.yAxis = d3.axisLeft(this.yScale).tickValues(topicWords);
     const multiKeysArray = [...this.IM_map.entries()].filter(({
       1: d
     }) => topicWords.includes(d)).map(array => {
@@ -700,66 +691,35 @@ class Freq {
     const topicGroup1 = Array.from(d3.group(multiKeysArray, d => d[1]), ([key, value]) => ({
       key,
       value: value.flat().filter(Number)
-    })); //console.log("multikeys array", multiKeysArray)
-    // console.log("multi keys", multiKeys)
-    // console.log("topic group1", topicGroup1)
-    //console.log("topic group key", topicGroup1[1].key)
-    //console.log("topic group  value", topicGroup1[1].value)
-    //add circles to axes
+    })); //add circles to axes
 
-    const circle = this.multiSvg.selectAll("circle").data(multiKeysArray) //topicGroup1)
-    .join("circle").attr("class", d => "circle" + ' ' + d[1]).attr("text", d => d[1]).attr("cy", d => this.yScale(d[1])) //.key))
-    .attr("cx", d => this.xScale(d[0])) //.value)) //this gives only the first instance along the x-axis
-    .attr("r", radius).attr("fill", paleWhite).attr("opacity", 1).attr("stroke", paleWhite); // again, why did i have to reselect instead of being able to use this.tooltip from above?
+    const circle = this.multiSvg.selectAll("circle").data(multiKeysArray).join("circle").attr("class", d => "circle" + ' ' + d[1]).attr("text", d => d[1]).attr("cy", d => this.yScale(d[1])).attr("cx", d => this.xScale(d[0])).attr("r", radius).attr("fill", paleWhite).attr("opacity", 1).attr("stroke", paleWhite); // mouse event functions: 
 
     const tooltip = d3.select(".tooltip");
 
     const mouseenter = function (d) {
       d3.select(this).attr("fill", "#fff").attr("r", radiusBigger);
-      tooltip.style("opacity", 1).text(d.srcElement.classList[1]).transition().duration(1000);
+      tooltip.style("opacity", 1).text(d.srcElement.classList[1]).transition().duration(1000); //  .attr("transform", `translate(${d.x}, ${d.y})`)
+      //  console.log(d)
     };
 
     const mouseout = function (d) {
       d3.select(this).attr("fill", paleWhite).attr("r", radius);
       tooltip.style("opacity", 0).transition().duration(1000);
-    }; // const circle =
-    //     this.svg.selectAll("circle")
-    //         .data(multiKeysArray) //topicGroup1)
-    //         .join("circle")
-    //         .attr("class", (d) => "circle" + ' ' + d[1])
-    //         .attr("text", (d) => d[1])
-    //         .attr("cy", (d) => this.yScale(d[1])) //.key))
-    //         .attr("cx", (d) => this.xScale(d[0])) //.value)) //this gives only the first instance along the x-axis
-    //         .attr("r", radius)
-    //         .attr("fill", "#9dc1e0")
-    //         .attr("opacity", 1)
-    //         .attr("stroke", "#9dc1e0")
+    };
 
-
-    circle.on("mouseenter", mouseenter) //     tooltip
-    //         .attr("transform", `translate(20, 20)`) // ${d => this.xScale(d[0]), d => this.yScale(d[1])})`)
-    // })
-    .on('click', (event, d) => {
-      //d3 v6?
+    circle.on("mouseenter", mouseenter).on('click', (event, d) => {
       this.contextNum = d;
-      console.log("this in freq", d[0]); // dispatch the word number to context:
-      //TO DO [ ] update new word as well so that this can show context
-
       this.dispatch.call("wordNum", this, d[0]);
-      this.dispatch.call("statechange", this, d[1]); // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
-
+      this.dispatch.call("statechange", this, d[1]);
       this.dispatch.call("statechange", this, this.IM_map.get(d.toString()));
     }).on("mouseout", mouseout);
-  }
-
-  showNewWord(newWord) {
-    d3.select("#newWord").attr("viewBox", [0, 0, 100, 50]).text(`${newWord}`).attr("color", '#111').attr("class", "newWord");
   }
 
 }
 
 exports.default = Freq;
-},{"d3":"7FiJ2","../style.scss":"4wf1O","fs":"6lYam","url:../../data/invisible_man.txt":"1Y7wD"}],"7FiJ2":[function(require,module,exports) {
+},{"d3":"7FiJ2","../style.scss":"4wf1O","url:../../data/invisible_man.txt":"1Y7wD"}],"7FiJ2":[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -21580,9 +21540,7 @@ var define;
     value: true
   });
 });
-},{"d3-dispatch":"3ftnw","d3-drag":"2zUEx","d3-interpolate":"6RoOu","d3-selection":"5pkuM","d3-transition":"6SBVd"}],"4wf1O":[function() {},{}],"6lYam":[function(require,module,exports) {
-"use strict";
-},{}],"1Y7wD":[function(require,module,exports) {
+},{"d3-dispatch":"3ftnw","d3-drag":"2zUEx","d3-interpolate":"6RoOu","d3-selection":"5pkuM","d3-transition":"6SBVd"}],"4wf1O":[function() {},{}],"1Y7wD":[function(require,module,exports) {
 module.exports = require('./bundle-url').getBundleURL() + require('./relative-path')("4jSPC", "1oCTM");
 },{"./bundle-url":"10N7P","./relative-path":"Q4PMS"}],"10N7P":[function(require,module,exports) {
 "use strict";
@@ -21707,10 +21665,6 @@ var d3 = _interopRequireWildcard(require("d3"));
 
 require("../style.scss");
 
-var _fs = _interopRequireDefault(require("fs"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -21725,10 +21679,10 @@ const IMtxt = require("url:../../data/invisible_man.txt");
 
 let IMobj;
 let IM_map;
+let maxWordNum;
 const spaceRE = /\s+/g;
 const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\ "!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
 const white = "#fffeee";
-const lightBlue = "#a2cff7";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
 const paleWhite = "#d1bebf";
@@ -21736,24 +21690,18 @@ const paleWhite = "#d1bebf";
 class Text {
   constructor(dispatch) {
     this.loadData();
-    this.dispatch = dispatch; // when freq word is clicked, show the context in the text (scroll to it)
-
-    this.dispatch.on("wordNum.text", this.scrollToWordNum);
-  } // DATA AND MANIPULATIONS
+    this.dispatch = dispatch;
+    this.dispatch.on("scroll", this.scrollToWordNum);
+  } // DATA & CLEANING / RESTRUCTURING
 
 
   loadData() {
     d3.text(IMtxt, d3.autoType).then(data => {
-      // includes quotations
-      //data = data.slice(515, -198);
-      // starts with prologue
-      data = data.slice(940, -198); //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
-      // this is called noPunct but it actually does include it
-      // [ ] TO DO: fix that ^^
+      // starts text with prologue -- to include epitaph, use data = data.slice(515, -198);
+      data = data.slice(940, -198); // remove meta text but keep other formatting for readability
 
-      const IM_noMeta_noPunct = data.replace(spaceRE, ' ');
-      const cells = IM_noMeta_noPunct.split(/\s+/); //.toLowerCase()
-
+      const IM_noMeta = data.replace(spaceRE, ' ');
+      const cells = IM_noMeta.split(/\s+/);
       IMobj = cells.reduce(function (acc, cur, i) {
         acc[i] = cur;
         return acc;
@@ -21768,15 +21716,11 @@ class Text {
       };
 
       IM_map = xah_obj_to_map(IMobj);
-      const wordRollup = d3.rollup(cells, v => v.length, d => d); //initial value of newWord is "invisible" BUT this sometimes breaks it... must depend on order of loading in data
-      //this.dispatch.call("statechange", this, 'invisible');
-      // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
-
-      this.draw(); // this.scrollToWordNum();
+      this.draw();
     });
   }
 
-  // TEXT ACROSS SCREEN
+  // CREATE DATA-DRIVEN TEXT
   draw() {
     function gridData() {
       var data = new Array();
@@ -21788,7 +21732,7 @@ class Text {
       var click = 0;
       var wordlength = 1;
 
-      for (var row = 0; row < 500; row++) {
+      for (var row = 0; row < 50; row++) {
         data.push(new Array()); // iterate for cells/columns inside rows
 
         for (var column = 0; xpos < widthW * .6; column++) {
@@ -21822,11 +21766,10 @@ class Text {
     var row = grid.selectAll(".row").data(gridData).enter().append("g").attr("class", "row");
     var column = row.selectAll(".square").data(function (d) {
       return d;
-    }).enter().append("rect") //.attr("class", "square")
-    //each rect has the class of its wordNum
-    .attr("class", function (d) {
+    }).enter().append("rect").attr("class", function (d) {
       return "a" + d.num;
-    }).attr("x", function (d) {
+    }) // each rect has the class of its wordNum - for scroll
+    .attr("x", function (d) {
       return d.x;
     }).attr("y", function (d) {
       return d.y;
@@ -21834,7 +21777,25 @@ class Text {
       return d.width;
     }).attr("height", function (d) {
       return d.height;
-    }).style("stroke", "#3a2224").style("fill", "#3a2224"); // below is the real draw() portion:
+    }).style("stroke", "#3a2224").style("fill", "#3a2224"); // mouse event functions: 
+
+    const mouseenter = function (d) {
+      d3.selectAll(`text :not(.clicked)`).style("fill", palerRed);
+      d3.select(this).transition().style("fill", paleWhite).attr("opacity", .9).delay(80).transition().style("fill", palerRed).attr("opacity", .9).delay(1000);
+    };
+
+    const handleClickEvent = (event, d) => {
+      let data = {};
+      this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+      this.dispatch.call("newWordtoTopic", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+      d3.selectAll(`text`).classed("clicked", false).transition().style("fill", palerRed).delay(80);
+      d3.selectAll(`text.${d.word.toLowerCase().replace(punctRE, '').replace(spaceRE, ' ')}`).style("fill", white).classed("clicked", true);
+    };
+
+    const mouseout = function (d) {
+      d3.selectAll(`.clicked`).style("fill", white).attr("opacity", 1).attr("font-size", 11).attr("text-anchor", "left");
+    }; // PRINT RESPONSIVE TEXT
+
 
     var text = row.selectAll(".label").data(function (d) {
       return d;
@@ -21842,35 +21803,11 @@ class Text {
       return d.x;
     }).attr("y", function (d) {
       return d.y + d.height / 2;
-    }) //.attr("text-anchor", "left")
-    .attr("dy", ".5em").attr("font-size", 11).style("fill", palerRed).attr("opacity", .9).attr("class", function (d) {
+    }).attr("dy", ".5em").attr("font-size", 11).style("fill", palerRed).attr("opacity", .9).attr("class", function (d) {
       return d.word.toLowerCase().replace(punctRE, '').replace(spaceRE, ' ');
     }).text(function (d) {
       return d.word;
-    }).on('mouseenter', function (d) {
-      d3.selectAll(`text :not(.clicked)`).style("fill", palerRed);
-      d3.select(this).transition().style("fill", paleWhite).attr("opacity", .9).delay(80).transition().style("fill", palerRed).attr("opacity", .9).delay(1000); // [ ] TODO: make this a function, maybe?
-      //[ ] TODO: make .clicked exempt from transitions until a new .clicked is created     
-    }).on('click', (event, d) => {
-      //d3 v6?
-      //console.log("d", d)
-      let data = {};
-      this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
-      d3.selectAll(`text`).classed("clicked", false).transition().style("fill", palerRed).delay(80);
-      d3.selectAll(`text.${d.word.toLowerCase().replace(punctRE, '').replace(spaceRE, ' ')}`).style("fill", white).classed("clicked", true); //.attr("classed", "clicked")
-      // [ ] TODO: on click, clear context if there is any
-    }).on('mouseout', function (d) {
-      // d3.selectAll(`text :not(.clicked)`)
-      //     .style("fill", palerRed)
-      //     .attr("opacity", .9)
-      //     .attr("font-size", 11)
-      //     .attr("text-anchor", "left")
-      //     .transition(500)
-      // d3.select(this)
-      //     .style("fill", palerRed)
-      //     .attr("opacity", .9)
-      d3.selectAll(`.clicked`).style("fill", white).attr("opacity", 1).attr("font-size", 11).attr("text-anchor", "left"); // console.log("this museout", this)
-    }); // SEARCH INPUT - on enter or button click
+    }).on('mouseenter', mouseenter).on('click', handleClickEvent).on('mouseout', mouseout); // SEARCH INPUT - on enter or button click
 
     const search = document.getElementById("siteSearch");
     const button = document.getElementById("searchButton");
@@ -21882,25 +21819,33 @@ class Text {
     });
     d3.select("#searchButton").on("click", () => {
       this.dispatch.call("statechange", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
-    }); //   this.scrollToWordNum();
-  }
+      this.dispatch.call("newWordtoTopic", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+    }); // get the highest count for grid data to define scroll parameters below
+
+    const maxNewRow = gridData.reduce((max, row) => max.num > row.num ? max : row);
+    maxWordNum = maxNewRow[maxNewRow.length - 1].num;
+  } // when a word is clicked on the frequency chart
+  // SCROLL CONTEXT INTO VIEW (only works for words loaded in gridData, not all words in the freq chart)
+
 
   scrollToWordNum(wordNum) {
-    //var x = -source.y0 / 2;
-    const selection = d3.select(`.a${wordNum}`);
-    const target = selection._groups[0][0];
-    const y = window.scrollY;
-    console.log("y", y);
-    target.scrollIntoView({
-      block: 'center',
-      behavior: "smooth"
-    }); // Next step would be to load in gridData chapter by chapter (or refactor completely...)
+    if (wordNum < maxWordNum) {
+      const selection = d3.select(`.a${wordNum}`);
+      const target = selection._groups[0][0];
+      target.scrollIntoView({
+        block: 'center',
+        behavior: "smooth"
+      });
+    } else {
+      console.log("No scroll is available because this part of the text hasn't been loaded yet.");
+    } // Next step is to load in gridData chapter by chapter as needed (or refactor completely because what am i doing with a for loop anyway...)
+
   }
 
 }
 
 exports.default = Text;
-},{"d3":"7FiJ2","../style.scss":"4wf1O","fs":"6lYam","url:../../data/invisible_man.txt":"1Y7wD"}],"4wf1O":[function() {},{}],"5eLxJ":[function(require,module,exports) {
+},{"d3":"7FiJ2","../style.scss":"4wf1O","url:../../data/invisible_man.txt":"1Y7wD"}],"4wf1O":[function() {},{}],"5eLxJ":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21916,14 +21861,12 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return 
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
-// imports
-// constants / globals
-//
+// displays 10 words of context surrounding the selected word + word instance (from the single or multi frequency chart)
 class Context {
   constructor(dispatch) {
     this.dispatch = dispatch;
     this.dispatch.on("wordNum.context", this.showContext);
-  } // [ ] TODO: build out (or make a second) showContext to take newWord and wordNum as inputs so that it can be used 
+  } // DISPLAY CONTEXT when a freq chart dispatch is called
 
 
   showContext(wordNum) {
@@ -21931,35 +21874,11 @@ class Context {
     const height = 50;
     console.log("wordnum", wordNum);
     const boldedNewWord = this.IM_map.get(wordNum.toString());
-    let context = this.IM_map.get((wordNum - 5).toString()) + " " + this.IM_map.get((wordNum - 4).toString()) + " " + this.IM_map.get((wordNum - 3).toString()) + " " + this.IM_map.get((wordNum - 2).toString()) + " " + this.IM_map.get((wordNum - 1).toString()) + " " + boldedNewWord + " " + this.IM_map.get((wordNum + 1).toString()) + " " + this.IM_map.get((wordNum + 2).toString()) + " " + this.IM_map.get((wordNum + 3).toString()) + " " + this.IM_map.get((wordNum + 4).toString()) + " " + this.IM_map.get((wordNum + 5).toString()); // [ ] this works, but IM_map has no punctuation -- would be better coming from a source with more formatting
-    // using IM_readable for context doesn't work because the numbers are not the same when there is punctuation included or not
-    //const context = this.IM_readable[(wordNum - 3).toString()] + " " + this.IM_readable[(wordNum - 2).toString()] + " " + this.IM_readable[(wordNum - 1).toString()] + " " + this.IM_readable[wordNum.toString()] + " " + this.IM_readable[(wordNum + 1).toString()] + " " + this.IM_readable[(wordNum + 2).toString()] + " " + this.IM_readable[(wordNum + 3).toString()];
-
-    console.log("im obj", this.IM_readable[wordNum]);
+    let context = this.IM_map.get((wordNum - 5).toString()) + " " + this.IM_map.get((wordNum - 4).toString()) + " " + this.IM_map.get((wordNum - 3).toString()) + " " + this.IM_map.get((wordNum - 2).toString()) + " " + this.IM_map.get((wordNum - 1).toString()) + " " + boldedNewWord + " " + this.IM_map.get((wordNum + 1).toString()) + " " + this.IM_map.get((wordNum + 2).toString()) + " " + this.IM_map.get((wordNum + 3).toString()) + " " + this.IM_map.get((wordNum + 4).toString()) + " " + this.IM_map.get((wordNum + 5).toString());
     this.svg = d3.select("#d3-container-context").attr("viewBox", [0, 0, width, height * 2]).attr("class", "context").text(`${context}`);
     this.svg = d3.select(".freq");
     this.dispatch.call("containerChange", this, this.svg);
-  } // showMultiContext(newWord, wordNum) {
-  //     const width = 800;
-  //     const height = 50;
-  //     console.log("wordnum", wordNum)
-  //     onsole.log("newWord in context", newWord)
-  //     const boldedNewWord = this.IM_map.get(wordNum.toString())
-  //     let context = this.IM_map.get((wordNum - 3).toString()) + " " + this.IM_map.get((wordNum - 2).toString()) + " " + this.IM_map.get((wordNum - 1).toString()) + " " + boldedNewWord + " " + this.IM_map.get((wordNum + 1).toString()) + " " + this.IM_map.get((wordNum + 2).toString()) + " " + this.IM_map.get((wordNum + 3).toString());
-  //     // [ ] this works, but IM_map has no punctuation -- would be better coming from a source with more formatting
-  //     // using IM_readable for context doesn't work because the numbers are not the same when there is punctuation included or not
-  //     //const context = this.IM_readable[(wordNum - 3).toString()] + " " + this.IM_readable[(wordNum - 2).toString()] + " " + this.IM_readable[(wordNum - 1).toString()] + " " + this.IM_readable[wordNum.toString()] + " " + this.IM_readable[(wordNum + 1).toString()] + " " + this.IM_readable[(wordNum + 2).toString()] + " " + this.IM_readable[(wordNum + 3).toString()];
-  //     console.log("im obj", this.IM_readable[wordNum])
-  //     this.svg = d3
-  //         .select("#d3-container-context")
-  //         .attr("viewBox", [0, 0, width, height * 2])
-  //         .attr("class", "context")
-  //         .text(`context: ${context}`);
-  //     this.svg = d3
-  //         .select(".freq")
-  //     this.dispatch.call("containerChange", this, this.svg);
-  // }
-
+  }
 
 }
 
@@ -21982,29 +21901,26 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // imports
 // constants / globals
-// this.tmResults = require("url:../../data/IM_19_by_20_try_2.csv")
-let topicData;
 let stack;
 let selectedTopic = [];
 const spaceRE = /\s+/g;
-const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-const paleRed = "#533d3f";
 const palerRed = "#806c6d";
-const paleWhite = "#d1bebf"; //
+const paleWhite = "#d1bebf";
+let findTopicData;
 
 class Topics {
   constructor(dispatch) {
-    this.dispatch = dispatch; //this.dispatch.on("statechange.topic", this.newWordtoTopic);
-
+    this.dispatch = dispatch;
+    this.dispatch.on("newWordtoTopic", this.newWordtoTopic);
     this.tmResults = require("url:../../data/IM_19_by_20_try_2.csv");
     this.IMtxt = require("url:../../data/invisible_man.txt");
     this.topicData;
     this.stack;
     this.IM_map;
     this.selectedTopic;
-    this.loadData(); // [ ] TODO: add a dispatch so that this.loadData (or this.initTopic if separated) runs on a click event from text.js
-    // it maybe shouldn't load when the page loads, too confusing
-  }
+    this.loadData();
+  } // LOAD AND REFACTOR TOPIC DATA
+
 
   loadData() {
     //ran this in Observable and pasted the output below:
@@ -22032,20 +21948,14 @@ class Topics {
       // sorted stream graph requires a stacked format
       this.stack = d3.stack().keys(data.columns.slice(1)).order(d3.stackOrderInsideOut).offset(d3.stackOffsetSilhouette)(data).map(d => (d.forEach(v => v.key = d.key), d));
       this.topicData = data;
-      console.log("td", this.topicData); // this.colorArray = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4',
-      //     '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8',
-      //     '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff']
-      // #e6194b
-      //new color array (first color is assigned to "Chapter")
+      findTopicData = this.topicData; //new color array, optimized for better contrast (first color is assigned to "Chapter", hence #000)
 
-      this.colorArray = ['#000', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#D5964D', '#fffac8', '#e6beff', '#fabebe', '#008080', //'#fffac8',
-      '#e6194b', '#aaffc3', '#89cff0', '#ffffff', '#ffd8b1', '#000075', '#808080']; //'#808000', 
-      // let textData;
+      this.colorArray = ['#000', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#D5964D', '#fffac8', '#e6beff', '#fabebe', '#008080', '#e6194b', '#aaffc3', '#89cff0', '#ffffff', '#ffd8b1', '#000075', '#808080']; // let textData;
 
       this.loadTextData(); /// this.initTopic();
-      //console.log("this.stack", this.topicData)
     });
-  }
+  } // LOAD AND REFACTOR TEXT DATA
+
 
   loadTextData() {
     d3.text(this.IMtxt, d3.autoType).then(data => {
@@ -22085,7 +21995,6 @@ class Topics {
     const chapterTicks = [...this.IM_map.entries()].filter(({
       1: v
     }) => v === "chapter").map(([k]) => k);
-    console.log("ch ticks", chapterTicks);
     this.chapterTicks = chapterTicks.map(function (x) {
       return parseInt(x, 10);
     });
@@ -22123,17 +22032,18 @@ class Topics {
     }).on("click", (event, d) => {
       // topicClickDesign();
       // data is the topic data associated with an area
-      const data = event.srcElement.__data__.key;
-      console.log("this.topicData", this.topicData); // the next three lines turn the topic to strings and find those words in the full text
+      const data = event.srcElement.__data__.key; // console.log("this.topicData", this.topicData)
+      // console.log("data", data)
+      // the next three lines turn the topic to strings and find those words in the full text
 
-      const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
-      console.log("topicWords", topicWords);
+      const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/); // console.log("topicWords", topicWords)
+
       const multiKeys = [...this.IM_map.entries()].filter(({
         1: d
-      }) => topicWords.includes(d));
-      const multiKeysNum = multiKeys.map(function (x) {
-        return parseInt(x, 10);
-      });
+      }) => topicWords.includes(d)); // const multiKeysNum = multiKeys.map(function (x) {
+      //     return parseInt(x, 10);
+      // });
+
       this.dispatch.call("topicArray", this, multiKeys, topicWords); // display the topic words in a div below:
 
       this.svg = d3.select("#d3-container-multiContext").attr("viewBox", [0, 0, width, height * 2]).attr("class", "context").text(`${topicWords.join(', ')}`); // [ ] TODO: UI to show clicked topic
@@ -22153,67 +22063,80 @@ class Topics {
     //     //.transition()
     //     //.duration(200)
     // }
-    // this.newWordtoTopic()
-  }
+    //this.newWordtoTopic()
+  } // throws a HINT if a selected word is represented in the topic graph
+  // TO COME: if selected word is in a topic, that topic will be highlighted
 
-  newWordtoTopic(newWord, topicData) {
-    //console.log("newWordToTopic:", newWord)
+
+  newWordtoTopic(newWord) {
     const chArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26];
-    const data = topicData; // console.log("data", data)
-    //ERRORS: accessing data after the first run -- I think this is a scope/closure problem
-    // to order topics within each chapter
+    const data = findTopicData; // order topics within each chapter to get the biggest topic
 
     const compareNumbers = (a, b) => {
       return b - a;
-    }; /// console.log("test again", Object.values(data[d]).sort(compareNumbers)[2])
+    }; // define a way to get the topic from its value
 
-    /*
-            // define a way to get the topic from its value
-            const getKeyByValue = (object, value) => {
-                return Object.keys(object).find(key => object[key] === value);
-            }
-    
-            //restructure the array to an object
-            const object = (d) => {
-                console.log("data1", data)
-                return data[d]
-            }
-    
-            // return the largest topic in each chapter
-            const topTopicValue = (d) => {
-                return Object.values(data[d]).sort(compareNumbers)[2]
-            }
-    
-            // get the chapter associated with that topic value
-            const topTopicByChapter = (d) => {
-                return getKeyByValue(object(d), topTopicValue(d))
-            }
-          // // run returnTopicNum() in a loop for i in length of chArray
-    //returns an array of chapter numbers in which newWord is in the top topic
-    // const topicNumFromArray = (chArray, newWord) => {
-    //     var arr = []
-    //     for (i = 0; i < chArray.length; i++) {
-    //         if (topTopicByChapter(i).includes(newWord))
-    //             arr.push(i)
-    //     }
-    //     return arr
-    // }
-     // is newWord in the top topic for this chapter or not?
+
+    const getKeyByValue = (object, value) => {
+      return Object.keys(object).find(key => object[key] === value);
+    }; // restructure the array to an object
+
+
+    const object = d => {
+      return data[d];
+    }; // return the largest topic in each chapter (index is [4] because the first four values returned are always the ch. title, ch number, ch_start and ch_midpoint)
+
+
+    const topTopicValue = d => {
+      return Object.values(data[d]).sort(compareNumbers)[4];
+    }; // get the chapter associated with that topic value
+
+
+    const topTopicByChapter = d => {
+      return " " + getKeyByValue(object(d), topTopicValue(d));
+    }; // returns an array of chapter numbers in which newWord is in the top topic
+
+
+    const topicNumFromArray = (chArray, newWord) => {
+      var arr = [];
+
+      for (let i = 0; i < chArray.length; i++) {
+        if (topTopicByChapter(i).includes(newWord)) arr.push(i);
+      }
+
+      return arr;
+    }; // is newWord in the top topic for this chapter? build an array of TRUE values
+
+
     const returnTopicNum = (chArray, newWord) => {
-        var arr = []
-        for (var d = 0; d < chArray.length; d++) {
-            if (topTopicByChapter(d).includes(newWord)) {
-                arr.push(newWord + " " + "is in the top topic for chapter " + d)
-            } else {
-                arr.push(newWord + " " + "is NOT in top topic for chapter " + d)
-            }
-            return arr
-        }
-    }
-       // [x] TODO: loop through all chapters
-    console.log("test:", returnTopicNum(chArray, newWord))
-     */
+      var arr = [];
 
+      for (let d = 0; d < chArray.length; d++) {
+        //  console.log("top topic by ch", topTopicByChapter(d))
+        if (topTopicByChapter(d).match(" " + newWord + " ")) {
+          arr.push(d); //arr.push("\"" + newWord + "\"" + " " + "is in top topic for chapter " + d)
+        } else {//arr.push(newWord + " " + "is NOT in top topic for chapter " + d)
+          }
+      }
+
+      return arr;
+    };
+
+    const textOutput = newWord => {
+      if (newWord && returnTopicNum(chArray, newWord).length == 0) {
+        return "\"" + newWord + "\"" + " isn't in the top topic for any chapters";
+      } else if (newWord && returnTopicNum(chArray, newWord).length == 1) {
+        return "\"" + newWord + "\"" + " is in the top topic for Chapter " + returnTopicNum(chArray, newWord);
+      } else if (newWord && returnTopicNum(chArray, newWord).length >= 2) {
+        return "\"" + newWord + "\"" + " is in the top topic for Chapters " + returnTopicNum(chArray, newWord).join(", ").replace(/, ((?:.(?!, ))+)$/, ' and $1');
+      } else return "";
+    };
+
+    const width = 800;
+    const height = 50;
+    this.svg = d3.select("#d3-container-hint").attr("viewBox", [0, 0, width, height * 2]).attr("class", "context").text(textOutput(newWord)); //`${newWord} is in the top topic for chapter(s) ${returnTopicNum(chArray, newWord)}`);
+
+    console.log("test:", returnTopicNum(chArray, newWord)); // console.log("test5:", topicNumFromArray(chArray, newWord))
   }
 
 }
@@ -22269,10 +22192,10 @@ class Explainer {
     //         }
     //     });
     // }
-    d3.selectAll(`.collapse-header`).on("click", showContent()).on("mouseover", console.log('nouse'));
+    d3.selectAll(`.collapse-header`).on("click", showContent()); // .on("mouseover", console.log('nouse'))
 
     function showContent() {
-      console.log("show me");
+      // console.log("show me")
       d3.select(".collapse-content").classed("uncollapse", true);
     }
   }
