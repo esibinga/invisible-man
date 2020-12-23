@@ -21736,7 +21736,9 @@ const paleWhite = "#d1bebf";
 class Text {
   constructor(dispatch) {
     this.loadData();
-    this.dispatch = dispatch;
+    this.dispatch = dispatch; // when freq word is clicked, show the context in the text (scroll to it)
+
+    this.dispatch.on("wordNum.text", this.scrollToWordNum);
   } // DATA AND MANIPULATIONS
 
 
@@ -21770,7 +21772,7 @@ class Text {
       //this.dispatch.call("statechange", this, 'invisible');
       // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
 
-      this.draw();
+      this.draw(); // this.scrollToWordNum();
     });
   }
 
@@ -21820,7 +21822,11 @@ class Text {
     var row = grid.selectAll(".row").data(gridData).enter().append("g").attr("class", "row");
     var column = row.selectAll(".square").data(function (d) {
       return d;
-    }).enter().append("rect").attr("class", "square").attr("x", function (d) {
+    }).enter().append("rect") //.attr("class", "square")
+    //each rect has the class of its wordNum
+    .attr("class", function (d) {
+      return "a" + d.num;
+    }).attr("x", function (d) {
       return d.x;
     }).attr("y", function (d) {
       return d.y;
@@ -21876,7 +21882,19 @@ class Text {
     });
     d3.select("#searchButton").on("click", () => {
       this.dispatch.call("statechange", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
-    });
+    }); //   this.scrollToWordNum();
+  }
+
+  scrollToWordNum(wordNum) {
+    //var x = -source.y0 / 2;
+    const selection = d3.select(`.a${wordNum}`);
+    const target = selection._groups[0][0];
+    const y = window.scrollY;
+    console.log("y", y);
+    target.scrollIntoView({
+      block: 'center',
+      behavior: "smooth"
+    }); // Next step would be to load in gridData chapter by chapter (or refactor completely...)
   }
 
 }
