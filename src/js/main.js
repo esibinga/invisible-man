@@ -9,7 +9,7 @@ export default class App {
     constructor(newWord, wordNum) {
         this.newWord = newWord
         this.wordNum = wordNum
-        this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray");
+        this.dispatch = d3.dispatch("statechange", "wordNum", "containerChange", "topicArray", "scroll", "newWordtoTopic");
     }
 
     init() {
@@ -18,13 +18,7 @@ export default class App {
         this.context = new Context(this.dispatch)
         this.topics = new Topics(this.dispatch)
         this.explainer = new Explainer(this.dispatch)
-        //console.log("working!")
     }
-
 }
 
 new App().init();
-
-// updateText function to update when state/ word changes
-// using a class will give text and freq a draw() method to call from outside 
-// d3 event dispatch library (can telegraph dispatch/catch events)

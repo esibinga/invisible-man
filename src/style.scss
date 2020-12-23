@@ -90,6 +90,9 @@ body {
     .multiContext.one {
         max-width: 120px;
     }
+    .hint.one {
+        max-width: 50px;
+    }
 
     #newWord {
         width: 20%;
@@ -106,6 +109,13 @@ body {
         margin-bottom: 1%;
         padding: .25em;
         color: $paleWhite;
+    }
+
+    #d3-container-hint {
+        padding: .25em;
+        padding-top: .75em;
+        color: $paleWhite;
+        font-size: 12px;
     }
   
     .freq, .freq2 {
