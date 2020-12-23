@@ -1,24 +1,19 @@
 // imports
 import * as d3 from "d3";
-import { text } from "d3";
 import "../../src/style.scss";
 
 // constants / globals
-// this.tmResults = require("url:../../data/IM_19_by_20_try_2.csv")
-let topicData;
 let stack;
 let selectedTopic = [];
 const spaceRE = /\s+/g;
-const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-const paleRed = "#533d3f";
 const palerRed = "#806c6d";
 const paleWhite = "#d1bebf";
+let findTopicData;
 
-//
 export default class Topics {
     constructor(dispatch) {
         this.dispatch = dispatch;
-        //this.dispatch.on("statechange.topic", this.newWordtoTopic);
+        this.dispatch.on("newWordtoTopic", this.newWordtoTopic);
         this.tmResults = require("url:../../data/IM_19_by_20_try_2.csv");
         this.IMtxt = require("url:../../data/invisible_man.txt");
         this.topicData;
@@ -27,10 +22,9 @@ export default class Topics {
         this.selectedTopic;
         this.loadData();
 
-        // [ ] TODO: add a dispatch so that this.loadData (or this.initTopic if separated) runs on a click event from text.js
-        // it maybe shouldn't load when the page loads, too confusing
     }
 
+    // LOAD AND REFACTOR TOPIC DATA
     loadData() {
 
         //ran this in Observable and pasted the output below:
@@ -65,25 +59,22 @@ export default class Topics {
                 .map(d => (d.forEach(v => v.key = d.key), d))
 
             this.topicData = data;
-            console.log("td", this.topicData)
-            // this.colorArray = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4',
-            //     '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8',
-            //     '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff']
+            findTopicData = this.topicData
 
-            // #e6194b
-            //new color array (first color is assigned to "Chapter")
+            //new color array, optimized for better contrast (first color is assigned to "Chapter", hence #000)
             this.colorArray = ['#000', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4',
-                '#46f0f0', '#f032e6', '#bcf60c', '#D5964D', '#fffac8', '#e6beff', '#fabebe', '#008080', //'#fffac8',
-                '#e6194b', '#aaffc3', '#89cff0', '#ffffff', '#ffd8b1', '#000075', '#808080'] //'#808000', 
+                '#46f0f0', '#f032e6', '#bcf60c', '#D5964D', '#fffac8', '#e6beff', '#fabebe', '#008080',
+                '#e6194b', '#aaffc3', '#89cff0', '#ffffff', '#ffd8b1', '#000075', '#808080']
 
 
             // let textData;
             this.loadTextData();
             /// this.initTopic();
-            //console.log("this.stack", this.topicData)
         })
     }
 
+
+    // LOAD AND REFACTOR TEXT DATA
     loadTextData() {
         d3.text(this.IMtxt, d3.autoType).then((data) => {
 
@@ -126,8 +117,6 @@ export default class Topics {
             .filter(({ 1: v }) => v === "chapter")
             .map(([k]) => k);
 
-        console.log("ch ticks", chapterTicks)
-
         this.chapterTicks = chapterTicks.map(function (x) {
             return parseInt(x, 10);
         });
@@ -151,11 +140,9 @@ export default class Topics {
         this.yAxis = d3.axisLeft(this.yScale);
 
         const area = d3.area()
-            .x(d => this.xScale(d.data.chapter_midpoint)) //chapter_start))
+            .x(d => this.xScale(d.data.chapter_midpoint))
             .y0(d => this.yScale(d[0]))
             .y1(d => this.yScale(d[1]))
-
-        // console.log("this.topicDat.data", this.topicData.data.chapter_title)
 
         const color = d3.scaleOrdinal()
             .domain(this.stack.map(d => d.key))
@@ -210,7 +197,7 @@ export default class Topics {
                 d3.select(this)
                     .raise()
                     .attr('stroke-width', '3')
-                    .attr("stroke", ({ key }) => color(key))//"black")
+                    .attr("stroke", ({ key }) => color(key))
                     .style("opacity", 1)
                     .transition()
                     .duration(200)
@@ -219,14 +206,15 @@ export default class Topics {
                 // topicClickDesign();
                 // data is the topic data associated with an area
                 const data = event.srcElement.__data__.key;
-                console.log("this.topicData", this.topicData)
+                // console.log("this.topicData", this.topicData)
+                // console.log("data", data)
                 // the next three lines turn the topic to strings and find those words in the full text
                 const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
-                console.log("topicWords", topicWords)
+                // console.log("topicWords", topicWords)
                 const multiKeys = [...this.IM_map.entries()].filter(({ 1: d }) => topicWords.includes(d));
-                const multiKeysNum = multiKeys.map(function (x) {
-                    return parseInt(x, 10);
-                });
+                // const multiKeysNum = multiKeys.map(function (x) {
+                //     return parseInt(x, 10);
+                // });
                 this.dispatch.call("topicArray", this, multiKeys, topicWords);
 
                 // display the topic words in a div below:
@@ -258,72 +246,86 @@ export default class Topics {
         //     //.transition()
         //     //.duration(200)
         // }
-        // this.newWordtoTopic()
+        //this.newWordtoTopic()
 
     }
 
-    newWordtoTopic(newWord, topicData) {
-        //console.log("newWordToTopic:", newWord)
+    // throws a HINT if a selected word is represented in the topic graph
+    // TO COME: if selected word is in a topic, that topic will be highlighted
+    newWordtoTopic(newWord) {
         const chArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
-        const data = topicData;
-        // console.log("data", data)
+        const data = findTopicData;
 
-        //ERRORS: accessing data after the first run -- I think this is a scope/closure problem
-
-        // to order topics within each chapter
+        // order topics within each chapter to get the biggest topic
         const compareNumbers = (a, b) => {
             return b - a;
         }
-        /// console.log("test again", Object.values(data[d]).sort(compareNumbers)[2])
-        /*
-                // define a way to get the topic from its value
-                const getKeyByValue = (object, value) => {
-                    return Object.keys(object).find(key => object[key] === value);
-                }
-        
-                //restructure the array to an object
-                const object = (d) => {
-                    console.log("data1", data)
-                    return data[d]
-                }
-        
-                // return the largest topic in each chapter
-                const topTopicValue = (d) => {
-                    return Object.values(data[d]).sort(compareNumbers)[2]
-                }
-        
-                // get the chapter associated with that topic value
-                const topTopicByChapter = (d) => {
-                    return getKeyByValue(object(d), topTopicValue(d))
-                }
-     
-        // // run returnTopicNum() in a loop for i in length of chArray
-        //returns an array of chapter numbers in which newWord is in the top topic
-        // const topicNumFromArray = (chArray, newWord) => {
-        //     var arr = []
-        //     for (i = 0; i < chArray.length; i++) {
-        //         if (topTopicByChapter(i).includes(newWord))
-        //             arr.push(i)
-        //     }
-        //     return arr
-        // }
 
-        // is newWord in the top topic for this chapter or not?
+        // define a way to get the topic from its value
+        const getKeyByValue = (object, value) => {
+            return Object.keys(object).find(key => object[key] === value);
+        }
+
+        // restructure the array to an object
+        const object = (d) => {
+            return data[d]
+        }
+
+        // return the largest topic in each chapter (index is [4] because the first four values returned are always the ch. title, ch number, ch_start and ch_midpoint)
+        const topTopicValue = (d) => {
+            return Object.values(data[d]).sort(compareNumbers)[4]
+        }
+
+        // get the chapter associated with that topic value
+        const topTopicByChapter = (d) => {
+            return " " + getKeyByValue(object(d), topTopicValue(d))
+        }
+
+        // returns an array of chapter numbers in which newWord is in the top topic
+        const topicNumFromArray = (chArray, newWord) => {
+            var arr = []
+            for (let i = 0; i < chArray.length; i++) {
+                if (topTopicByChapter(i).includes(newWord))
+                    arr.push(i)
+            }
+            return arr
+        }
+
+        // is newWord in the top topic for this chapter? build an array of TRUE values
         const returnTopicNum = (chArray, newWord) => {
             var arr = []
-            for (var d = 0; d < chArray.length; d++) {
-                if (topTopicByChapter(d).includes(newWord)) {
-                    arr.push(newWord + " " + "is in the top topic for chapter " + d)
+            for (let d = 0; d < chArray.length; d++) {
+                //  console.log("top topic by ch", topTopicByChapter(d))
+                if (topTopicByChapter(d).match(" " + newWord + " ")) {
+                    arr.push(d) //arr.push("\"" + newWord + "\"" + " " + "is in top topic for chapter " + d)
                 } else {
-                    arr.push(newWord + " " + "is NOT in top topic for chapter " + d)
+                    //arr.push(newWord + " " + "is NOT in top topic for chapter " + d)
                 }
-                return arr
             }
+            return arr
         }
-  
-        // [x] TODO: loop through all chapters
+
+        const textOutput = (newWord) => {
+            if ((newWord) && returnTopicNum(chArray, newWord).length == 0) {
+                return "\"" + newWord + "\"" + " isn't in the top topic for any chapters"
+            } else if ((newWord) && returnTopicNum(chArray, newWord).length == 1) {
+                return "\"" + newWord + "\"" + " is in the top topic for Chapter " + returnTopicNum(chArray, newWord)
+            } else if ((newWord) && returnTopicNum(chArray, newWord).length >= 2) {
+                return "\"" + newWord + "\"" + " is in the top topic for Chapters " + returnTopicNum(chArray, newWord).join(", ").replace(/, ((?:.(?!, ))+)$/, ' and $1');
+            } else return ""
+        }
+
+
+        const width = 800;
+        const height = 50;
+        this.svg = d3
+            .select("#d3-container-hint")
+            .attr("viewBox", [0, 0, width, height * 2])
+            .attr("class", "context")
+            .text(textOutput(newWord)) //`${newWord} is in the top topic for chapter(s) ${returnTopicNum(chArray, newWord)}`);
+
         console.log("test:", returnTopicNum(chArray, newWord))
-         */
+        // console.log("test5:", topicNumFromArray(chArray, newWord))
     }
 
 

@@ -1,13 +1,14 @@
-// displays lexical dispersion chart
+// displays lexical dispersion chart for single selected word and for words from the selected topic
 // displays the selected word in the header
 
 import * as d3 from "d3";
 import "../style.scss";
-import fs from "fs";
 
-//globals
+// GLOBALS
 const radius = 3;
 const radiusBigger = 7;
+const spaceRE = /\s+/g;
+const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
 const paleWhite = "#d1bebf";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
@@ -17,7 +18,6 @@ export default class Freq {
     constructor(dispatch) {
         this.dispatch = dispatch;
         this.updateFreq = this.updateFreq.bind(this);
-        // pick up the "statechange" call
         this.dispatch.on("statechange.freq", this.updateFreq);
         this.dispatch.on("containerChange", this.updateFreq);
         this.dispatch.on("topicArray", this.updateFreqMulti);
@@ -25,18 +25,14 @@ export default class Freq {
         this.IM_map;
         this.IM_readable;
         this.loadData();
-        //can separate updateFreq into smaller functions
-        // or - give Freq an internal state property that updates every time 
-        // save the new word to this.newWOrd to keep track of it
     }
 
-    // data and manipulations
+    // DATA & CLEANING / RESTRUCTURING
     loadData() {
 
         d3.text(this.IMtxt, d3.autoType).then((data) => {
 
-            const spaceRE = /\s+/g;
-            const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+            // take out meta text, carriage breaks, punctuation, and converts to lowercase (unlike text.js which maintains readability)
             const IM_noMeta_noPunct = data.slice(515, -198).replace(punctRE, '').replace(spaceRE, ' ')
             const cells = IM_noMeta_noPunct.toLowerCase().split(/\s+/)
 
@@ -60,29 +56,32 @@ export default class Freq {
 
             this.IM_map = xah_obj_to_map(this.IMobj)
 
-            //const wordRollup = d3.rollup((cells), v => v.length, d => d)
             let newWord;
             this.draw(newWord);
-            this.showNewWord("");
+            this.showNewWord(""); //inital value is nothing
             this.drawFreqMulti();
         })
     };
 
-    draw(newWord) {
 
+    // DISPLAY THE SELECTED WORD
+    showNewWord(newWord) {
+        if (newWord == undefined) { newWord = "" }
+        d3.select("#newWord")
+            .attr("viewBox", [0, 0, 100, 50])
+            .text(`${newWord}`)
+            .attr("color", '#111')
+            .attr("class", "newWord")
+    }
+
+    // INITIALIZE SINGLE FREQUENCY CHART
+    draw(newWord) {
         const width = window.innerWidth * .9;
         const height = 120;
         const marginLeft = 10;
         const marginRight = 10;
         const marginBottom = 0;
-        const marginTop = 10;
         const smallFont = 12;
-        const medFont = 14;
-        const bigFont = 20;
-        const lightGray = "#999";
-        const lightBlue = "#9dc1e0"; //"#bbd0e3";
-        const medGray = "#777";
-        const darkGray = "#444";
 
         this.svg = d3
             .select("#d3-container-freq")
@@ -100,7 +99,7 @@ export default class Freq {
             .domain([10, 0])
             .range([0, height]);
 
-        // make chapter markings for x-axis
+        // make chapter markings for x-axis scale
         const chapterTicks = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === "chapter")
             .map(([k]) => k);
@@ -134,6 +133,7 @@ export default class Freq {
 
         this.yAxis = d3.axisLeft(this.yScale);
 
+        // add context with "Prologue" and "Epilogue" labels
         this.svg.append("text")
             .text("Prologue")
             .attr("transform", `translate(${width * .025}, ${height - height * .25}) rotate(-90)`)
@@ -151,18 +151,18 @@ export default class Freq {
             .attr("font-size", smallFont);
     }
 
+    // UPDATE SINGLE FREQUENCY CHART
     updateFreq(newWord) {
+        console.log("running updateFreq")
         const keys = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === newWord)
             .map(([k]) => k);
-        console.log("this.contextNum", this.contextNum)
 
         this.keysNum = keys.map(function (x) {
             return parseInt(x, 10);
         });
 
         console.log("keysNum", this.keysNum)
-        // console.log("IM_Map", this.IM_map)
         console.log("newWOrd", newWord)
 
         const circle =
@@ -180,18 +180,15 @@ export default class Freq {
                     d3.select(this)
                         .attr("fill", "#fff")
                         .attr("r", radiusBigger)
-                    //  .classed("moused", true)
                 })
-                .on('click', (event, d) => { //d3 v6?
+                .on('click', (event, d) => {
                     this.contextNum = d
-                    console.log("this in freq", this)
-                    // dispatch the word number to context:
-                    this.dispatch.call("wordNum", this, d); //this.IM_map.get(d.toString())
-                    // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
+                    // dispatch word number to text -- this one seems very heavy on the browser
+                    // this.dispatch.call("scroll", this, d);
+                    // dispatches the word number to context
+                    this.dispatch.call("wordNum", this, d);
+                    // dispatch current word again so that freq.js chart continues to display with the current word until newWord is changed by a click event in text.js:
                     this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
-
-                    // d3.selectAll(".ugh")
-                    // .attr("fill", "#000")
                     d3.selectAll(".circle")
                         .attr("fill", palerRed)
                         .attr("stroke", palerRed)
@@ -203,24 +200,17 @@ export default class Freq {
                         .attr("r", radius)
                         .classed("moused", false)
                 })
-
+        // because newWord must be reasserted every time the frequency chart is clicked, recall this method on every freq update   
         this.showNewWord(newWord);
     }
 
+    // INIT TOPIC FREQ CHART
     drawFreqMulti() {
         const width = window.innerWidth * .9;
         const height = 120;
         const marginLeft = 10;
         const marginRight = 10;
         const marginBottom = 0;
-        const marginTop = 10;
-        const smallFont = 12;
-        const medFont = 14;
-        const bigFont = 20;
-        const lightGray = "#999";
-        const lightBlue = "#9dc1e0"; //"#bbd0e3";
-        const medGray = "#777";
-        const darkGray = "#444";
 
         this.multiSvg = d3
             .select("#d3-container-freq2")
@@ -235,7 +225,7 @@ export default class Freq {
 
         //yScale is only drawn in updateFreqMulti once it has access to topic words from dispatch
 
-        // make chapter markings for x-axis
+        // make chapter markings for x-axis scale
         const chapterTicks = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === "chapter")
             .map(([k]) => k);
@@ -268,21 +258,33 @@ export default class Freq {
             .text(`something`)
             .attr("fill", "#fff")
 
-        this.tooltip = //this.svg
+        this.tooltip =
             d3.select("#d3-container-freq2")
                 .append("div")
                 .attr("class", "tooltip")
-                .attr("transform", `translate(20, -100)`)
+                .attr("transform", `translate()`)
                 .style("opacity", 1)
+
+        // for another day: tooltip next to element rather than below the graph
+        // this.tooltip =
+        //     d3.select(".freq2")
+        //         .append("div")
+        //         .attr("class", "tooltip")
+        //         //.attr("transform", `translate(20, -100)`)//${x[0], y[0]})`)
+        //         .attr("opacity", 1)
+        //         .attr("width", "10px")
+        //         .attr("height", "10px")
+        //         .attr("fill", "white")
 
     }
 
+    // UPDATE TOPIC FREQ CHART
     updateFreqMulti(multiKeys, topicWords) {
         const width = window.innerWidth * .9;
         const marginLeft = 10;
         const marginRight = 10;
 
-        // re-select (not sure why this.multiSvg had to be re-instated here)
+        // re-select (not sure why this.multiSvg had to be re-instated here (and at tooltip below, instead of this.tooltip))
         this.multiSvg = d3
             .select(".freq2")
 
@@ -291,6 +293,7 @@ export default class Freq {
             .domain([0, 176665])
             .range([marginLeft, width - marginRight]);
 
+        // make y-scale, now that topicWords is available via d3.dispatch
         this.yScale = d3
             .scaleOrdinal()
             .domain(topicWords)
@@ -298,11 +301,6 @@ export default class Freq {
 
         this.yAxis = d3.axisLeft(this.yScale)
             .tickValues(topicWords);
-
-        //  console.log("multi KeysNum", multiKeysNum) -- this is just numbers, no words
-        const multiKeysNum = multiKeys.map(function (x) {
-            return parseInt(x, 10);
-        });
 
         const multiKeysArray = [...this.IM_map.entries()]
             .filter(({ 1: d }) => topicWords.includes(d))
@@ -313,27 +311,23 @@ export default class Freq {
         const topicGroup = d3.group(multiKeysArray, d => d[1])
         const topicGroup1 = Array.from(d3.group(multiKeysArray, d => d[1]),
             ([key, value]) => ({ key, value: value.flat().filter(Number) }))
-        //console.log("multikeys array", multiKeysArray)
-        // console.log("multi keys", multiKeys)
-        // console.log("topic group1", topicGroup1)
-        //console.log("topic group key", topicGroup1[1].key)
-        //console.log("topic group  value", topicGroup1[1].value)
 
         //add circles to axes
         const circle =
             this.multiSvg.selectAll("circle")
-                .data(multiKeysArray) //topicGroup1)
+                .data(multiKeysArray)
                 .join("circle")
                 .attr("class", (d) => "circle" + ' ' + d[1])
                 .attr("text", (d) => d[1])
-                .attr("cy", (d) => this.yScale(d[1])) //.key))
-                .attr("cx", (d) => this.xScale(d[0])) //.value)) //this gives only the first instance along the x-axis
+                .attr("cy", (d) => this.yScale(d[1]))
+                .attr("cx", (d) => this.xScale(d[0]))
                 .attr("r", radius)
                 .attr("fill", paleWhite)
                 .attr("opacity", 1)
                 .attr("stroke", paleWhite);
 
-        // again, why did i have to reselect instead of being able to use this.tooltip from above?
+
+        // mouse event functions: 
         const tooltip = d3.select(".tooltip")
 
         const mouseenter = function (d) {
@@ -345,6 +339,8 @@ export default class Freq {
                 .text(d.srcElement.classList[1])
                 .transition()
                 .duration(1000)
+            //  .attr("transform", `translate(${d.x}, ${d.y})`)
+            //  console.log(d)
         }
 
         const mouseout = function (d) {
@@ -357,41 +353,13 @@ export default class Freq {
                 .duration(1000)
         }
 
-        // const circle =
-        //     this.svg.selectAll("circle")
-        //         .data(multiKeysArray) //topicGroup1)
-        //         .join("circle")
-        //         .attr("class", (d) => "circle" + ' ' + d[1])
-        //         .attr("text", (d) => d[1])
-        //         .attr("cy", (d) => this.yScale(d[1])) //.key))
-        //         .attr("cx", (d) => this.xScale(d[0])) //.value)) //this gives only the first instance along the x-axis
-        //         .attr("r", radius)
-        //         .attr("fill", "#9dc1e0")
-        //         .attr("opacity", 1)
-        //         .attr("stroke", "#9dc1e0")
         circle.on("mouseenter", mouseenter)
-            //     tooltip
-            //         .attr("transform", `translate(20, 20)`) // ${d => this.xScale(d[0]), d => this.yScale(d[1])})`)
-            // })
-            .on('click', (event, d) => { //d3 v6?
+            .on('click', (event, d) => {
                 this.contextNum = d
-                console.log("this in freq", d[0])
-                // dispatch the word number to context:
-                //TO DO [ ] update new word as well so that this can show context
                 this.dispatch.call("wordNum", this, d[0]);
                 this.dispatch.call("statechange", this, d[1]);
-                // dispatch the current word again so that freq.js continues to display until newWord is changed by a click event in text.js:
                 this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
             })
             .on("mouseout", mouseout)
     }
-
-    showNewWord(newWord) {
-        d3.select("#newWord")
-            .attr("viewBox", [0, 0, 100, 50])
-            .text(`${newWord}`)
-            .attr("color", '#111')
-            .attr("class", "newWord")
-    }
-
 }

@@ -3,20 +3,17 @@
 
 import * as d3 from "d3";
 import "../style.scss";
-import fs from "fs";
 
 // CONSTANTS AND GLOBALS
 const widthW = window.innerWidth * .9;
 const heightW = window.innerHeight * .5;
-
-
 const IMtxt = require("url:../../data/invisible_man.txt");
 let IMobj;
 let IM_map;
+let maxWordNum;
 const spaceRE = /\s+/g;
 const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\ "!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
-const white = "#fffeee"
-const lightBlue = "#a2cff7";
+const white = "#fffeee";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
 const paleWhite = "#d1bebf";
@@ -25,21 +22,19 @@ export default class Text {
     constructor(dispatch) {
         this.loadData();
         this.dispatch = dispatch;
+        this.dispatch.on("scroll", this.scrollToWordNum);
     }
 
-    // DATA AND MANIPULATIONS
+    // DATA & CLEANING / RESTRUCTURING
     loadData() {
 
         d3.text(IMtxt, d3.autoType).then((data) => {
-            // includes quotations
-            //data = data.slice(515, -198);
-            // starts with prologue
+            // starts text with prologue -- to include epitaph, use data = data.slice(515, -198);
             data = data.slice(940, -198);
-            //const IM_noMeta_noPunct = data.replace(punctRE, '').replace(spaceRE, ' ');
-            // this is called noPunct but it actually does include it
-            // [ ] TO DO: fix that ^^
-            const IM_noMeta_noPunct = data.replace(spaceRE, ' ');
-            const cells = IM_noMeta_noPunct.split(/\s+/); //.toLowerCase()
+
+            // remove meta text but keep other formatting for readability
+            const IM_noMeta = data.replace(spaceRE, ' ');
+            const cells = IM_noMeta.split(/\s+/);
 
             IMobj = cells.reduce(function (acc, cur, i) {
                 acc[i] = cur;
@@ -53,16 +48,12 @@ export default class Text {
             });
 
             IM_map = xah_obj_to_map(IMobj)
-            const wordRollup = d3.rollup((cells), v => v.length, d => d)
-            //initial value of newWord is "invisible" BUT this sometimes breaks it... must depend on order of loading in data
-            //this.dispatch.call("statechange", this, 'invisible');
-            // .call is like "pick up the phone to call" & .on is like ".on 'ring', pick up the .call"
 
             this.draw();
         })
     };
 
-    // TEXT ACROSS SCREEN
+    // CREATE DATA-DRIVEN TEXT
     draw() {
 
         function gridData() {
@@ -75,7 +66,7 @@ export default class Text {
             var click = 0;
             var wordlength = 1;
 
-            for (var row = 0; row < 100; row++) {
+            for (var row = 0; row < 50; row++) {
                 data.push(new Array());
 
                 // iterate for cells/columns inside rows
@@ -120,7 +111,7 @@ export default class Text {
         var column = row.selectAll(".square")
             .data(function (d) { return d; })
             .enter().append("rect")
-            .attr("class", "square")
+            .attr("class", function (d) { return "a" + (d.num) }) // each rect has the class of its wordNum - for scroll
             .attr("x", function (d) { return d.x; })
             .attr("y", function (d) { return d.y; })
             .attr("width", function (d) { return d.width; })
@@ -128,68 +119,60 @@ export default class Text {
             .style("stroke", "#3a2224")
             .style("fill", "#3a2224")
 
-        // below is the real draw() portion:
+        // mouse event functions: 
+        const mouseenter = function (d) {
+            d3.selectAll(`text :not(.clicked)`)
+                .style("fill", palerRed)
+            d3.select(this)
+                .transition()
+                .style("fill", paleWhite)
+                .attr("opacity", .9)
+                .delay(80)
+                .transition()
+                .style("fill", palerRed)
+                .attr("opacity", .9)
+                .delay(1000)
+        }
+
+        const handleClickEvent = (event, d) => {
+            let data = {}
+            this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+            this.dispatch.call("newWordtoTopic", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+            d3.selectAll(`text`)
+                .classed("clicked", false)
+                .transition()
+                .style("fill", palerRed)
+                .delay(80)
+            d3.selectAll(`text.${(d.word).toLowerCase().replace(punctRE, '').replace(spaceRE, ' ')}`)
+                .style("fill", white)
+                .classed("clicked", true)
+        }
+
+        const mouseout = function (d) {
+            d3.selectAll(`.clicked`)
+                .style("fill", white)
+                .attr("opacity", 1)
+                .attr("font-size", 11)
+                .attr("text-anchor", "left")
+        }
+
+        // PRINT RESPONSIVE TEXT
         var text = row.selectAll(".label")
             .data(function (d) { return d; })
             .join("svg:text")
             .attr("class", "textWords")
             .attr("x", function (d) { return d.x })
             .attr("y", function (d) { return d.y + d.height / 2 })
-            //.attr("text-anchor", "left")
             .attr("dy", ".5em")
             .attr("font-size", 11)
             .style("fill", palerRed)
             .attr("opacity", .9)
             .attr("class", function (d) { return (d.word).toLowerCase().replace(punctRE, '').replace(spaceRE, ' ') })
             .text(function (d) { return d.word })
-            .on('mouseenter', function (d) {
-                d3.selectAll(`text :not(.clicked)`)
-                    .style("fill", palerRed)
-                d3.select(this)
-                    .transition()
-                    .style("fill", paleWhite)
-                    .attr("opacity", .9)
-                    .delay(80)
-                    .transition()
-                    .style("fill", palerRed)
-                    .attr("opacity", .9)
-                    .delay(1000)
-                // [ ] TODO: make this a function, maybe?
-                //[ ] TODO: make .clicked exempt from transitions until a new .clicked is created     
-            })
-            .on('click', (event, d) => { //d3 v6?
-                //console.log("d", d)
-                let data = {}
-                this.dispatch.call("statechange", this, IM_map.get(d.num.toString()).toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
-                d3.selectAll(`text`)
-                    .classed("clicked", false)
-                    .transition()
-                    .style("fill", palerRed)
-                    .delay(80)
-                d3.selectAll(`text.${(d.word).toLowerCase().replace(punctRE, '').replace(spaceRE, ' ')}`)
-                    .style("fill", white)
-                    .classed("clicked", true)
-                //.attr("classed", "clicked")
-                // [ ] TODO: on click, clear context if there is any
-            })
-            .on('mouseout', function (d) {
-                // d3.selectAll(`text :not(.clicked)`)
-                //     .style("fill", palerRed)
-                //     .attr("opacity", .9)
-                //     .attr("font-size", 11)
-                //     .attr("text-anchor", "left")
-                //     .transition(500)
-                // d3.select(this)
-                //     .style("fill", palerRed)
-                //     .attr("opacity", .9)
-                d3.selectAll(`.clicked`)
-                    .style("fill", white)
-                    .attr("opacity", 1)
-                    .attr("font-size", 11)
-                    .attr("text-anchor", "left")
+            .on('mouseenter', mouseenter)
+            .on('click', handleClickEvent)
+            .on('mouseout', mouseout);
 
-                // console.log("this museout", this)
-            });
 
         // SEARCH INPUT - on enter or button click
         const search = document.getElementById("siteSearch");
@@ -204,6 +187,26 @@ export default class Text {
         d3.select("#searchButton")
             .on("click", () => {
                 this.dispatch.call("statechange", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+                this.dispatch.call("newWordtoTopic", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
             })
+
+        // get the highest count for grid data to define scroll parameters below
+        const maxNewRow = gridData.reduce((max, row) => max.num > row.num ? max : row)
+        maxWordNum = maxNewRow[maxNewRow.length - 1].num
+    }
+
+    // when a word is clicked on the frequency chart
+    // SCROLL CONTEXT INTO VIEW (only works for words loaded in gridData, not all words in the freq chart)
+    scrollToWordNum(wordNum) {
+
+        if (wordNum < maxWordNum) {
+            const selection = d3.select(`.a${wordNum}`);
+            const target = selection._groups[0][0]
+            target.scrollIntoView({ block: 'center', behavior: "smooth" })
+        } else {
+            console.log("No scroll is available because this part of the text hasn't been loaded yet.")
+        }
+
+        // Next step is to load in gridData chapter by chapter as needed (or refactor completely because what am i doing with a for loop anyway...)
     }
 }
