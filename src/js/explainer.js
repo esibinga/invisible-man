@@ -41,10 +41,10 @@ export default class Explainer {
         // }
         d3.selectAll(`.collapse-header`)
             .on("click", showContent())
-            .on("mouseover", console.log('nouse'))
+        // .on("mouseover", console.log('nouse'))
 
         function showContent() {
-            console.log("show me")
+            // console.log("show me")
             d3.select(".collapse-content")
                 .classed("uncollapse", true)
         }
