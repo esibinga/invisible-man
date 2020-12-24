@@ -34,11 +34,9 @@ body {
     color: $white;
     font-family: monaco;
     font-weight: 100;
-    font-size: 11px;
     padding: 5% 5% 2% 5%;
 
     .textWrapper{
-
         background-color: $darkDarkRed;
         width: 70%;
         margin: auto; 
@@ -228,10 +226,6 @@ a:active {
 }
 
 
-// [ x ] TODO: scroll behavior
-// [ ] TODO: sort out classes... ugh
-// [ x ] TODO: color palette
-
 // ABOUT
 
 .about .text {
@@ -246,8 +240,6 @@ a:active {
     font-size: 14pt;
     color: $palerRed;
 }
-
-
 
 // CSS dropdowns -- modified from https://www.digitalocean.com/community/tutorials/css-collapsible 
 input[type='checkbox'] {
