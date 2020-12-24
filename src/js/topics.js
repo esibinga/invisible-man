@@ -2,13 +2,16 @@
 import * as d3 from "d3";
 import "../../src/style.scss";
 
-// constants / globals
+// GLOBALS
 let stack;
 let selectedTopic = [];
 const spaceRE = /\s+/g;
 const palerRed = "#806c6d";
 const paleWhite = "#d1bebf";
+const darkDarkRed = "#3a2224";
 let findTopicData;
+const chArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+
 
 export default class Topics {
     constructor(dispatch) {
@@ -27,21 +30,20 @@ export default class Topics {
     // LOAD AND REFACTOR TOPIC DATA
     loadData() {
 
-        //ran this in Observable and pasted the output below:
-        //     function midpoints(chapters1) {
-        //         let array = []
-        //         let simpleArray = []
-        //      for (let i=0; i < chapters1.length; i++) {
-        //      const midpoint = (chapters1[i] + chapters1[i+1] ) / 2
-        //       //array.push({chapter: i , midpoint: Math.round(midpoint)})
-        //        simpleArray.push(Math.round(midpoint))
-        //      }
-        //      return simpleArray;
-        //    }
+        /*
+        // ran this in Observable and pasted the output of midpoints below
+            function midpoints(chapters1) {
+                let simpleArray = []
+             for (let i=0; i < chapters1.length; i++) {
+             const midpoint = (chapters1[i] + chapters1[i+1] ) / 2
+               simpleArray.push(Math.round(midpoint))
+             }
+             return simpleArray;
+           } 
+        */
 
-        //may have to be redefined (// should DEFINITELY be drawn from this.IM_map but...)
         const chapterStarts = [73, 3860, 9982, 22020, 29647, 32782, 41491, 45907, 49022, 52123, 59091, 69753, 75245, 78217, 89089, 95604, 100095, 107242, 115524, 123295, 127492, 134212, 139796, 144982, 155513, 161785, 173283]
-        // these are chapter midpoints to align the topic model and chapters, but the beginning and end are fudged (it starts at the begining of the prologue and ends at the end of the epilogue)
+        // these are chapter midpoints to align the topic model and chapters, but the beginning and end are fudged (it starts at the beginning of the prologue and ends at the end of the epilogue)
         const chapterMidpoints = [73, 6921, 16001, 25834, 31215, 37137, 43699, 47465, 50573, 55607, 64422, 72499, 76731, 83653, 92347, 97850, 103669, 111383, 119410, 125394, 130852, 137004, 142389, 150248, 158649, 167534, 176665]
 
 
@@ -66,10 +68,7 @@ export default class Topics {
                 '#46f0f0', '#f032e6', '#bcf60c', '#D5964D', '#fffac8', '#e6beff', '#fabebe', '#008080',
                 '#e6194b', '#aaffc3', '#89cff0', '#ffffff', '#ffd8b1', '#000075', '#808080']
 
-
-            // let textData;
             this.loadTextData();
-            /// this.initTopic();
         })
     }
 
@@ -103,8 +102,8 @@ export default class Topics {
     initTopic() {
         const width = window.innerWidth * .9;
         const height = 100;
-        const marginLeft = 10; //5;
-        const marginRight = 10; //-25;
+        const marginLeft = 10;
+        const marginRight = 10;
         const marginBottom = 0;
         const marginTop = 0;
 
@@ -135,7 +134,8 @@ export default class Topics {
         this.xAxis = d3.axisBottom(this.xScale)
             .tickValues(this.topicData.map(d => d.chapter_start))
             .tickSize(-height)
-            .tickFormat("");
+            .tickFormat(function (d, i) { return chArray[i] })
+            .tickArguments([26])
 
         this.yAxis = d3.axisLeft(this.yScale);
 
@@ -152,7 +152,7 @@ export default class Topics {
         this.svg = d3
             .select("#d3-container-TM")
             .append("svg")
-            .attr("viewBox", [0, 0, width, height])
+            .attr("viewBox", [0, 0, width, height * 1.2])
             .attr("class", "topic")
 
         this.svg
@@ -160,10 +160,11 @@ export default class Topics {
             .append("g")
             .attr("transform", `translate(0, ${height - marginBottom})`)
             .call(this.xAxis)
-            .append("text")
-            .attr("class", "axis-label")
 
-        // const fillColorClass = ({ key }) => color(key).replace('#', '')
+        d3.selectAll('path')
+            .style("opacity", .4)
+            .attr("stroke", darkDarkRed)
+            .attr('stroke-width', '.5')
 
         const streams = this.svg.append("g")
             .selectAll("path")
@@ -173,8 +174,7 @@ export default class Topics {
             .attr("d", area)
             .attr('stroke-width', '.5')
             .attr("stroke", palerRed)
-            .attr("class", ({ key }) => key) //color(key).replace('#', ''))
-            // console.log(({ key }) => color(key).replace('#', ''))
+            .attr("class", ({ key }) => key)
             .append("title")
             .text(({ key }) => key)
             .call(this.xAxis)
@@ -186,13 +186,13 @@ export default class Topics {
                 .attr("class", "tooltip")
                 .style("opacity", 1)
 
-        //
+        // 
         const topics = this.svg
             .selectAll("path")
             .on("mouseenter", function (d) {
                 d3.selectAll('path')
                     .style("opacity", .4)
-                    .attr("stroke", palerRed)
+                    .attr("stroke", darkDarkRed)
                     .attr('stroke-width', '.5')
                 d3.select(this)
                     .raise()
@@ -203,20 +203,12 @@ export default class Topics {
                     .duration(200)
             })
             .on("click", (event, d) => {
-                // topicClickDesign();
                 // data is the topic data associated with an area
                 const data = event.srcElement.__data__.key;
-                // console.log("this.topicData", this.topicData)
-                // console.log("data", data)
-                // the next three lines turn the topic to strings and find those words in the full text
+                // the next three lines turn the topic to strings and find those words in teh text ofr the multi-word Freq plot
                 const topicWords = data.replace(spaceRE, ' ').toLowerCase().split(/\s+/);
-                // console.log("topicWords", topicWords)
                 const multiKeys = [...this.IM_map.entries()].filter(({ 1: d }) => topicWords.includes(d));
-                // const multiKeysNum = multiKeys.map(function (x) {
-                //     return parseInt(x, 10);
-                // });
                 this.dispatch.call("topicArray", this, multiKeys, topicWords);
-
                 // display the topic words in a div below:
                 this.svg = d3
                     .select("#d3-container-multiContext")
@@ -224,37 +216,25 @@ export default class Topics {
                     .attr("class", "context")
                     .text(`${topicWords.join(', ')}`);
 
-                // [ ] TODO: UI to show clicked topic
+                // [ ] TODO: UI to show/maintain clicked topic -- proving more challenging than expected
                 // d3.select((d) => this.topicData.columns[d])
                 //     .attr("classed", "clicked")
                 //     console.log("key:", key)
             })
-
-            //  .on("click", topicToFreq(e))
             .on("mouseout", function () {
                 d3.select(this)
-                //.attr('stroke-width', '.5')
-                //.attr("stroke", "black")
             })
 
-        // const topicClickDesign(e) {
-        //     d3.select(this)
-        //         .raise()
-        //         .attr('stroke-width', '3')
-        //         .attr("stroke", "black")
-        //         .style("opacity", 1)
-        //     //.transition()
-        //     //.duration(200)
-        // }
-        //this.newWordtoTopic()
+
 
     }
 
     // throws a HINT if a selected word is represented in the topic graph
     // TO COME: if selected word is in a topic, that topic will be highlighted
     newWordtoTopic(newWord) {
-        const chArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
         const data = findTopicData;
+        const width = 800;
+        const height = 50;
 
         // order topics within each chapter to get the biggest topic
         const compareNumbers = (a, b) => {
@@ -278,29 +258,26 @@ export default class Topics {
 
         // get the chapter associated with that topic value
         const topTopicByChapter = (d) => {
-            return " " + getKeyByValue(object(d), topTopicValue(d))
+            return " " + getKeyByValue(object(d), topTopicValue(d)) + " " // spaces added on each side so that .match will work for the full, exact word down below
         }
 
-        // returns an array of chapter numbers in which newWord is in the top topic
-        const topicNumFromArray = (chArray, newWord) => {
-            var arr = []
-            for (let i = 0; i < chArray.length; i++) {
-                if (topTopicByChapter(i).includes(newWord))
-                    arr.push(i)
-            }
-            return arr
-        }
+        /* // returns an array of chapter numbers in which newWord is in the top topic (not used)
+         const topicNumFromArray = (chArray, newWord) => {
+             var arr = []
+             for (let i = 0; i < chArray.length; i++) {
+                 if (topTopicByChapter(i).includes(newWord))
+                     arr.push(i)
+             }
+             return arr
+         } */
 
         // is newWord in the top topic for this chapter? build an array of TRUE values
         const returnTopicNum = (chArray, newWord) => {
             var arr = []
             for (let d = 0; d < chArray.length; d++) {
-                //  console.log("top topic by ch", topTopicByChapter(d))
                 if (topTopicByChapter(d).match(" " + newWord + " ")) {
-                    arr.push(d) //arr.push("\"" + newWord + "\"" + " " + "is in top topic for chapter " + d)
-                } else {
-                    //arr.push(newWord + " " + "is NOT in top topic for chapter " + d)
-                }
+                    arr.push(d)
+                } else { }
             }
             return arr
         }
@@ -315,18 +292,10 @@ export default class Topics {
             } else return ""
         }
 
-
-        const width = 800;
-        const height = 50;
         this.svg = d3
             .select("#d3-container-hint")
             .attr("viewBox", [0, 0, width, height * 2])
             .attr("class", "context")
-            .text(textOutput(newWord)) //`${newWord} is in the top topic for chapter(s) ${returnTopicNum(chArray, newWord)}`);
-
-        console.log("test:", returnTopicNum(chArray, newWord))
-        // console.log("test5:", topicNumFromArray(chArray, newWord))
+            .text(textOutput(newWord))
     }
-
-
 }

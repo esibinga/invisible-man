@@ -12,6 +12,8 @@ const punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}
 const paleWhite = "#d1bebf";
 const paleRed = "#533d3f";
 const palerRed = "#806c6d";
+const chArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+
 
 export default class Freq {
 
@@ -87,7 +89,7 @@ export default class Freq {
             .select("#d3-container-freq")
             .append("svg")
             .attr("class", "freq")
-            .attr("viewBox", [0, 0, width, height])
+            .attr("viewBox", [0, 0, width, height * 1.1])
 
         this.xScale = d3
             .scaleLinear()
@@ -118,7 +120,8 @@ export default class Freq {
         this.xAxis = d3.axisBottom(this.xScale)
             .tickValues(this.chapterTicksObj.map(a => a.num))
             .tickSize(-height)
-            .tickFormat("");
+            .tickFormat(function (d, i) { return chArray[i] });
+        // .tickFormat("");
 
         this.svg
             .attr("class", "freq")
@@ -153,7 +156,6 @@ export default class Freq {
 
     // UPDATE SINGLE FREQUENCY CHART
     updateFreq(newWord) {
-        console.log("running updateFreq")
         const keys = [...this.IM_map.entries()]
             .filter(({ 1: v }) => v === newWord)
             .map(([k]) => k);
@@ -162,7 +164,7 @@ export default class Freq {
             return parseInt(x, 10);
         });
 
-        console.log("keysNum", this.keysNum)
+        //console.log("keysNum", this.keysNum)
         console.log("newWOrd", newWord)
 
         const circle =
@@ -184,7 +186,7 @@ export default class Freq {
                 .on('click', (event, d) => {
                     this.contextNum = d
                     // dispatch word number to text -- this one seems very heavy on the browser
-                    // this.dispatch.call("scroll", this, d);
+                    this.dispatch.call("scroll", this, d);
                     // dispatches the word number to context
                     this.dispatch.call("wordNum", this, d);
                     // dispatch current word again so that freq.js chart continues to display with the current word until newWord is changed by a click event in text.js:
@@ -216,7 +218,7 @@ export default class Freq {
             .select("#d3-container-freq2")
             .append("svg")
             .attr("class", "freqMulti")
-            .attr("viewBox", [0, 0, width, height])
+            .attr("viewBox", [0, 0, width, height * 1.1])
 
         this.xScale = d3
             .scaleLinear()
@@ -244,19 +246,21 @@ export default class Freq {
         this.xAxis = d3.axisBottom(this.xScale)
             .tickValues(this.chapterTicksObj.map(a => a.num))
             .tickSize(-height)
-            .tickFormat("");
+            .tickFormat(function (d, i) { return chArray[i] });
+
+        // .tickFormat("");
 
         this.multiSvg
             .attr("class", "freq2")
             .append("g")
             .attr("transform", `translate(0, ${height - marginBottom})`)
             .call(this.xAxis)
-            .append("text")
-            .attr("class", "axis-label")
-            .attr("x", "45%")
-            .attr("dy", "3em")
-            .text(`something`)
-            .attr("fill", "#fff")
+        // .append("text")
+        // .attr("class", "axis-label")
+        // .attr("x", "45%")
+        // .attr("dy", "3em")
+        // .text(`something`)
+        // .attr("fill", "#fff")
 
         this.tooltip =
             d3.select("#d3-container-freq2")
@@ -326,7 +330,6 @@ export default class Freq {
                 .attr("opacity", 1)
                 .attr("stroke", paleWhite);
 
-
         // mouse event functions: 
         const tooltip = d3.select(".tooltip")
 
@@ -358,7 +361,7 @@ export default class Freq {
                 this.contextNum = d
                 this.dispatch.call("wordNum", this, d[0]);
                 this.dispatch.call("statechange", this, d[1]);
-                this.dispatch.call("statechange", this, this.IM_map.get(d.toString()))
+                this.dispatch.call("newWordtoTopic", this, d[1]);
             })
             .on("mouseout", mouseout)
     }
