@@ -190,6 +190,22 @@ export default class Text {
                 this.dispatch.call("newWordtoTopic", this, document.getElementById("siteSearch").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
             })
 
+        // SEARCH INPUT - mobile
+        const searchM = document.getElementById("siteSearchMobile");
+        const buttonM = document.getElementById("searchButtonMobile")
+        searchM.addEventListener("keyup", function (event) {
+            if (event.code === 'Enter') {
+                event.preventDefault();
+                buttonM.click();
+            }
+        });
+
+        d3.select("#searchButtonMobile")
+            .on("click", () => {
+                this.dispatch.call("statechange", this, document.getElementById("siteSearchMobile").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+                this.dispatch.call("newWordtoTopic", this, document.getElementById("siteSearchMobile").value.toString().toLowerCase().replace(punctRE, '').replace(spaceRE, ' '));
+            })
+
         // get the highest count for grid data to define scroll parameters below
         const maxNewRow = gridData.reduce((max, row) => max.num > row.num ? max : row)
         maxWordNum = maxNewRow[maxNewRow.length - 1].num
