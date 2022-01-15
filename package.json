@@ -21,7 +21,7 @@
     "@jamesives/github-pages-deploy-action": "^3.7.1",
     "d3": "^6.2.0",
     "data": "^0.6.1",
-    "node-forge": "^0.10.0",
+    "node-forge": "^1.0.0",
     "node-sass": "^4.14.1"
   }
 }
