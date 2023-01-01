@@ -14,7 +14,7 @@
     "eslint": "7.2.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "^2.21.2",
-    "parcel": "^2.0.0-nightly.424",
+    "parcel": "^2.8.2",
     "sass": "^1.27.0"
   },
   "dependencies": {
